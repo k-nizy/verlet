@@ -6,13 +6,13 @@ The app lives on claude.ai (Verlet Task Agent). Codex cannot open it, so the two
 1. In the app, open **Write** and press **For Codex (JSON)**.
 2. Save the file into `codex/inbox/` in this folder, for example `codex/inbox/verlet-agent-export_2026-11-10.json`.
 3. The file holds:
-   - `rules`: the current in-house rules (same as `rules/inhouse-rules-v1.json`, but always the latest version)
+   - `rules`: the current in-house rules (same as `rules/inhouse-rules.json`, but always the latest version)
    - `tasks`: every written task, each with its `appId`
    - `confirmedNames`: names the owner confirmed that are not written yet
    - `news`: the last 7 days of the morning briefing, with sources and task leads
 
 ## What Codex does
-- Write confirmed names, improve tasks, or brainstorm new ones, following `rules/inhouse-rules-v1.md` exactly.
+- Write confirmed names, improve tasks, or brainstorm new ones, following `rules/inhouse-rules.md` exactly.
 - Keep each task's `appId` when editing an existing task, so the app updates the same task.
 - Use the exact shape below. Zones only from: Supply, Tool, Used Equipment, Staging, Operation, Finished Goods.
 - Save the result as `codex/outbox/<date>-codex.json` in the shape `{"format":"verlet-agent-v2","tasks":[ ... ]}`.

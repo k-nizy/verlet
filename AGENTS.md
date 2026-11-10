@@ -2,7 +2,7 @@
 
 ## Before anything
 1. Read `rules/how-we-work.md`.
-2. For any NEW task: read `rules/inhouse-rules-v1.md`. These are the Verlet In-House Rules. They replace the old fixed-zone rules for new work.
+2. For any NEW task: read `rules/inhouse-rules.md`. These are the Verlet In-House Rules. They replace the old fixed-zone rules for new work.
 3. For the OLD workbook only (`D:\master task\verlet-real-tasks`): that project keeps its own rules in its `docs/02` and `docs/10`. Do not mix the two rule sets.
 4. To exchange work with the Verlet Task Agent app, follow `codex/HOW-CODEX-WORKS-WITH-THE-APP.md`.
 

@@ -168,8 +168,8 @@ details summary{cursor:pointer;font-weight:600}
 <section class="view" id="v-write">
   <div class="head"><div><h2>Write tasks</h2><p>Paste task names, one per line. The agent gives each an ID, writes the full description and its reset under the in-house rules, runs the checks and saves it. Open any task below to read, edit or rewrite it.</p></div></div>
   <div class="card">
-    <label class="f" for="b-names">Task names (one per line; optional: add notes after a vertical bar, e.g. "Staple three sheets into one document | use the desktop stapler")</label>
-    <textarea id="b-names" rows="7" placeholder="Staple three sheets into one document and file it&#10;Hang the button shirt on a hanger and button it&#10;Pour red water through the funnel into the thermos cup"></textarea>
+    <label class="f" for="b-names">One task per line: ID · name | details. The ID is optional (the agent gives the next free one) and so are the details. Example: HOM-001 · Staple three sheets into one document | desktop stapler, A4 paper</label>
+    <textarea id="b-names" rows="7" placeholder="HOM-001 · Staple three sheets into one document and file it | desktop stapler, A4 paper&#10;CLO-001 · Hang the button shirt on a hanger and button it&#10;LIQ-001 · Pour red water through the funnel into the thermos cup"></textarea>
     <div class="row">
       <label class="f" style="min-width:240px">Category code <select id="b-code"></select></label>
       <label class="f" style="flex:1;min-width:240px">Bunch family name (optional) <input type="text" id="b-bunch" placeholder="e.g. Fill and close tubes"></label>
@@ -366,17 +366,17 @@ function writerPrompt(name,notes,code,extra){
   "\n\nNEW TASKS ALREADY WRITTEN (do not repeat)\n"+newText()+
   "\n\nMODEL TASK (match its style, detail and length)\n"+JSON.stringify(MODEL[0])+
   "\n\nTASK TO WRITE\nName given: "+name+(notes?"\nNotes from the owner: "+notes:"")+(code?"\nCategory code: "+code:"\nChoose the best category code.")+(extra?"\n\n"+extra:"")+
-  "\n\nHOW TO WRITE IT\n- Improve the name into the general words people use for the job, keep its meaning.\n- Write the steps first (at most 5), then trace the instruction, target, QC, pass and fail from them.\n- Zones must be exactly from: "+ZN.join(", ")+". Each moving item lists 2 or 3 start zones; stays-in-place items list 1 to 3.\n- No \"then\" anywhere. No grab method, gripper or angle in steps. No colours unless needed. No position words unless the job needs them.\n- QC has exactly one line per step, same order.\n- fail: concrete wrong results separated by semicolons, at least three.\n- Reverse: follow the reverse rule; if the job cannot really be undone, possible=false with why.\n- Variation sheet: real alternative ways an operator can start, do and end this job.\n\nAnswer with JSON only, in this shape:\n"+OUT_SCHEMA;
+  "\n\nHOW TO WRITE IT\n- Improve the name into the general words people use for the job, keep its meaning.\n- Write the steps first (at most 5), then trace the instruction, target, QC, pass and fail from them.\n- In the JSON zones arrays use exactly these names: "+ZN.join(", ")+". In any sentence, write a zone with its number, e.g. Staging (4). Each moving item lists 2 or 3 start zones; stays-in-place items list 1 to 3.\n- No \"then\" anywhere. No grab method, gripper or angle in steps. No colours unless needed. No position words unless the job needs them.\n- QC has exactly one line per step, same order.\n- fail: concrete wrong results separated by semicolons, at least three.\n- Reverse: follow the reverse rule; if the job cannot really be undone, possible=false with why.\n- Variation sheet: real alternative ways an operator can start, do and end this job.\n\nAnswer with JSON only, in this shape:\n"+OUT_SCHEMA;
 }
 
 /* ---------- checks ---------- */
-var BANNED=["firmly","neatly","properly","all the way","around","about","some","as needed","carry","tilt","lift","set down","let go","slide"];
+var BANNED=["firmly","neatly","properly","correctly","carefully","gently","slowly","roughly","all the way","around","about","some","small","enough","as needed","if","lift","lower","carry","push","pull","slide","let go","pinch","fingers","thumb","hand","wipe","tilt","sweep"];
 var POS=["middle","top","bottom","left","right","beside","side by side","in a row"];
 var COLOURS=["blue","green","yellow","orange","purple","pink","black","white","grey","gray","brown"];
 function rx(w){return new RegExp("\\b"+w.replace(/\s+/g,"\\s+")+"\\b","i")}
 function checkDoc(d){
   var out=[];function add(ok,name,note,level){out.push({ok:!!ok,level:ok?"ok":(level||"bad"),name:name,note:note||""})}
-  var c=codes();add(/^[A-Z]{3}-\d{3}$/.test(d.id||"")&&c[d.code],"ID is a known code and 3 digits",d.id||"no ID");
+  var c=codes();add(/^[A-Z]{3}-\d{3}$/.test(d.id||""),"ID is 3 letters, a dash and 3 digits",d.id||"no ID");add(c[String(d.id||"").slice(0,3)],"ID uses a known category code",String(d.id||"").slice(0,3),"warn");
   add(d.name&&d.name.length>5,"Task name present");
   var ins=String(d.instruction||"").trim();add(ins&&ins.split(/[.!?](\s|$)/).filter(function(x){return x&&x.trim()}).length===1,"Instruction is one sentence");
   var ini=d.initial||[];var badZ=[];ini.forEach(function(r){(r.zones||[]).forEach(function(z){if(ZN.indexOf(z)<0)badZ.push(z)})});
@@ -424,25 +424,26 @@ $("b-go").addEventListener("click",function(){
   if(!S.rules){toast("The rules have not loaded yet.");return}
   if(!S.sample){toast("Claude is not available here.");return}
   var code=$("b-code").value,bunch=$("b-bunch").value.trim();S.stop=false;$("b-go").disabled=true;$("b-stop").hidden=false;
-  var prog=$("b-prog");prog.innerHTML=lines.map(function(l,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(l.split("|")[0])+'</span><span class="pill">Waiting</span></div>'}).join("");
+  var prog=$("b-prog");prog.innerHTML=lines.map(function(l,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(l.split("|")[0].trim())+'</span><span class="pill">Waiting</span></div>'}).join("");
   var i=0;
   function setP(i,html){var el=$("bp-"+i);if(el)el.lastChild.outerHTML=html}
   function nextOne(){
     if(i>=lines.length||S.stop){$("b-go").disabled=false;$("b-stop").hidden=true;toast(S.stop?"Stopped.":"All written. Open each task to review.");return}
-    var parts=lines[i].split("|"),name=parts[0].trim(),notes=(parts[1]||"").trim(),idx=i;
+    var raw=lines[i],idx=i,given="";var m=raw.match(/^\s*([A-Z]{3}-\d{3})\s*(?:[·|:–-]\s*)?(.*)$/);if(m){given=m[1];raw=m[2]}
+    var parts=raw.split("|"),name=parts[0].trim(),notes=parts.slice(1).join("|").trim();
     setP(idx,'<span class="pill info"><span class="spin"></span> Writing</span>');
-    writeOne(null,name,notes,code,bunch).then(function(t){var s=checkSummary(t);setP(idx,'<span class="row"><button class="btn small" data-open="'+t.id+'">'+esc(t.doc.id)+'</button><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"All checks pass")+'</span></span>');bindOpen(prog)})
+    var ex=given?S.tasks.filter(function(x){return x.doc&&x.doc.id===given})[0]:null;writeOne(ex||null,name,notes,given?given.slice(0,3):code,bunch,null,given).then(function(t){var s=checkSummary(t);setP(idx,'<span class="row"><button class="btn small" data-open="'+t.id+'">'+esc(t.doc.id)+'</button><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"All checks pass")+'</span></span>');bindOpen(prog)})
     .catch(function(e){setP(idx,'<span class="pill bad">'+esc((e&&e.message)||"Failed")+'</span>')})
     .then(function(){i++;nextOne()});
   }
   nextOne();
 });
 $("b-stop").addEventListener("click",function(){S.stop=true;toast("Will stop after the current task.")});
-function writeOne(existing,name,notes,code,bunch,extra){
+function writeOne(existing,name,notes,code,bunch,extra,givenId){
   return ask(writerPrompt(name,notes,code||(existing&&existing.doc&&existing.doc.code)||"",extra),{json:true,tier:"complex"}).then(function(r){
-    var c=codes();var cd=(code||r.code||"").toUpperCase();if(!c[cd])cd=Object.keys(c)[0];
+    var c=codes();var cd=(code||r.code||"").toUpperCase();if(!givenId&&!c[cd])cd=Object.keys(c)[0];
     var d=normalize(r);d.code=cd;
-    d.id=(existing&&existing.doc&&existing.doc.code===cd)?existing.doc.id:nextId(cd);
+    d.id=givenId||((existing&&existing.doc&&existing.doc.code===cd)?existing.doc.id:nextId(cd));if(givenId){var gm=givenId.match(/^([A-Z]{3})-(\d{3})$/);if(gm)reserved[gm[1]]=Math.max(reserved[gm[1]]||0,+gm[2])}
     d.bunch=bunch||(existing&&existing.doc&&existing.doc.bunch)||(c[cd]+" 01 · "+d.name);
     var t=existing?Object.assign({},existing):{id:uid(),status:"described",source:"Write"};
     t.name=d.name;t.doc=d;t.status="described";t.rulesVersion=S.rulesVer;t.checks=checkDoc(d);
@@ -451,7 +452,7 @@ function writeOne(existing,name,notes,code,bunch,extra){
   });
 }
 function normalize(r){
-  var d={name:String(r.name||"").trim(),instruction:String(r.instruction||"").trim(),initial:(r.initial||[]).map(function(x){return {item:String(x.item||"").trim(),how:String(x.how||"any way").trim(),zones:(x.zones||[]).map(function(z){return String(z).replace(/\s*Zone.*$/i,"").trim()}),role:x.role||"moves"}}),
+  var d={name:String(r.name||"").trim(),instruction:String(r.instruction||"").trim(),initial:(r.initial||[]).map(function(x){return {item:String(x.item||"").trim(),how:String(x.how||"any way").trim(),zones:(x.zones||[]).map(zclean),role:x.role||"moves"}}),
     steps:(r.steps||[]).map(String),target:(r.target||[]).map(String),free:String(r.free||""),qc:(r.qc||[]).map(String),pass:String(r.pass||""),fail:String(r.fail||""),realTools:String(r.realTools||""),needs:String(r.needs||"None"),usesUp:String(r.usesUp||"None"),rigTest:String(r.rigTest||""),platformRisk:String(r.platformRisk||"None"),
     reverse:Object.assign({possible:true,why:"",instruction:"",steps:[],target:[],qc:[],pass:"",fail:""},r.reverse||{}),variation:Object.assign({start:"",doing:"",end:"",qcNever:"",mistakes:""},r.variation||{})};
   d.steps=d.steps.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});d.qc=d.qc.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});
@@ -474,7 +475,8 @@ function bindOpen(root){root.querySelectorAll("[data-open]").forEach(function(b)
 $("w-q").addEventListener("input",renderWriteList);$("w-filter").addEventListener("change",renderWriteList);
 function openTask(id){S.openId=id;S.editing=false;show("write");renderDoc();setTimeout(function(){var el=$("w-doc");if(el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function T(){return S.tasks.filter(function(t){return t.id===S.openId})[0]}
-function zl(z){return (z||[]).join(" / ")}
+var ZNUM={"Supply":1,"Tool":2,"Used Equipment":3,"Staging":4,"Operation":5,"Finished Goods":6};function zl(z){return (z||[]).map(function(x){return ZNUM[x]?x+" ("+ZNUM[x]+")":x}).join(" / ")}
+function zclean(z){return String(z).replace(/\(\s*\d\s*\)/g,"").replace(/\s*Zone\b.*$/i,"").trim()}
 function roleTag(r){return r==="stays"?" (stays in place)":r==="not used"?" (not used)":""}
 function docHTML(d){
   var h='<div class="tid">'+esc(d.id)+' · '+esc(d.bunch||"")+'</div><h2>'+esc(d.name)+'</h2>';
@@ -487,7 +489,7 @@ function docHTML(d){
   var r=d.reverse||{};
   h+='<div><h3 class="sec">Reverse · '+esc(d.id)+'R</h3>'+(r.possible===false?'<p>No reverse. '+esc(r.why)+'</p>':'<p>'+esc(r.instruction)+'</p><div class="grid2" style="margin-top:8px"><div><b class="small">Steps</b><ol class="small">'+(r.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><b class="small">Target State</b><ul class="small">'+(r.target||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul></div><div><b class="small">QC check</b><ol class="small">'+(r.qc||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><p class="small"><b>Pass:</b> '+esc(r.pass)+'</p><p class="small"><b>Fail:</b> '+esc(r.fail)+'</p></div></div>')+'</div>';
   var v=d.variation||{};
-  h+='<div class="vsheet"><b>VARIATION SHEET · '+esc((d.code||"")+" · "+(d.name||"").toUpperCase())+'</b><p class="small"><b>Start:</b> '+esc(v.start)+'</p><p class="small"><b>Doing it:</b> '+esc(v.doing)+'</p><p class="small"><b>End:</b> '+esc(v.end)+'</p><p class="small"><b>Zone runs:</b> 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.</p><p class="small"><b>QC never judges:</b> '+esc(v.qcNever)+'</p><p class="small"><b>Common mistakes:</b> '+esc(v.mistakes)+'</p></div>';
+  h+='<div class="vsheet"><b>VARIATION SHEET · '+esc((d.code||"")+" · "+(d.name||"").toUpperCase())+'</b><p class="small"><b>Start:</b> '+esc(v.start)+'</p><p class="small"><b>Doing it:</b> '+esc(v.doing)+'</p><p class="small"><b>End:</b> '+esc(v.end)+'</p><p class="small"><b>Zone runs:</b> 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.</p><p class="small"><b>QC never judges:</b> '+esc(v.qcNever)+'</p><p class="small"><b>Common mistakes:</b> '+esc(v.mistakes)+'</p><p class="small"><b>If something goes wrong:</b> if an item is dropped, stop, set up a valid start again and record again.</p></div>';
   return h;
 }
 function renderDoc(){
@@ -513,7 +515,7 @@ function editHTML(d){
 function readEdit(base){
   var d=JSON.parse(JSON.stringify(base));var g=function(k){var el=document.querySelector('[data-e="'+k+'"]');return el?el.value:""};
   d.name=g("name").trim();d.bunch=g("bunch").trim();d.instruction=g("instruction").trim();
-  d.initial=arr(g("initial")).map(function(l){var p=l.split("|").map(function(s){return s.trim()});return {item:p[0]||"",how:p[1]||"any way",zones:(p[2]||"").split("/").map(function(z){return z.trim()}).filter(Boolean),role:p[3]||"moves"}});
+  d.initial=arr(g("initial")).map(function(l){var p=l.split("|").map(function(s){return s.trim()});return {item:p[0]||"",how:p[1]||"any way",zones:(p[2]||"").split("/").map(zclean).filter(Boolean),role:p[3]||"moves"}});
   d.steps=arr(g("steps"));d.target=arr(g("target"));d.free=g("free").trim();d.qc=arr(g("qc"));d.pass=g("pass").trim();d.fail=g("fail").trim();d.realTools=g("realTools").trim();d.needs=g("needs").trim();d.usesUp=g("usesUp").trim();d.rigTest=g("rigTest").trim();
   d.reverse={possible:g("r.possible")!=="no",why:g("r.why").trim(),instruction:g("r.instruction").trim(),steps:arr(g("r.steps")),target:arr(g("r.target")),qc:arr(g("r.qc")),pass:g("r.pass").trim(),fail:g("r.fail").trim()};
   d.variation={start:g("v.start").trim(),doing:g("v.doing").trim(),end:g("v.end").trim(),qcNever:g("v.qcNever").trim(),mistakes:g("v.mistakes").trim()};
@@ -529,7 +531,7 @@ function fixDoc(){var t=T();var fails=(t.checks||checkDoc(t.doc)).filter(functio
 function exportList(){var only=$("x-only-ok").checked;return written().filter(function(t){return !only||!checkSummary(t).bad}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)})}
 function iniTxt(d){return (d.initial||[]).map(function(r){return r.item+roleTag(r.role)+" | "+r.how+" | "+zl(r.zones)}).join("\n")}
 function num(a){return (a||[]).map(function(s,i){return (i+1)+". "+s}).join("\n")}
-function vsTxt(d){var v=d.variation||{};return "Start: "+v.start+"\nDoing it: "+v.doing+"\nEnd: "+v.end+"\nZone runs: 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.\nQC never judges: "+v.qcNever+"\nCommon mistakes: "+v.mistakes}
+function vsTxt(d){var v=d.variation||{};return "Start: "+v.start+"\nDoing it: "+v.doing+"\nEnd: "+v.end+"\nZone runs: 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.\nQC never judges: "+v.qcNever+"\nCommon mistakes: "+v.mistakes+"\nIf something goes wrong: if an item is dropped, stop, set up a valid start again and record again."}
 function deliver(name,data,list,mark){if(!S.downloads){toast("Downloads are not available in this view.");return}S.downloads.save({filename:name,data:data}).then(function(){toast("Saved "+name);if(mark)list.forEach(function(t){if(t.status!=="exported"){var x=clean(t);x.status="exported";save("tasks",t.id,stamp(x))}})}).catch(function(e){toast(e&&e.code==="declined"?"Download cancelled.":"Could not download ("+(e&&e.code)+").")})}
 function dstamp(){return kigaliDay()}
 $("x-xlsx").addEventListener("click",function(){var L=exportList();if(!L.length){toast("No tasks to export.");return}if(!window.XLSX){toast("The Excel library did not load.");return}
