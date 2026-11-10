@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verlet Task Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* 60-30-10: sand (60) and charcoal (30) get along; electric blue (10) only marks actions. */
+:root{
+  --base:#efe9df; --surface:#fbf8f3; --ink:#24272b; --muted:#666a70; --line:#dcd4c6; --soft:#e6dfd2;
+  --accent:#2f5bff; --accent-ink:#ffffff; --accent-soft:#e3e9ff;
+  --ok:#2e7d4f; --ok-soft:#e0efe5; --bad:#b3372b; --bad-soft:#f6e1dd; --warn:#8a6100; --warn-soft:#f5ead0;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --mono:"IBM Plex Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --base:#1d1f22; --surface:#26292d; --ink:#ece5d8; --muted:#a9a296; --line:#3a3d42; --soft:#2f3236;
+  --accent:#5b7dff; --accent-ink:#ffffff; --accent-soft:#232d52;
+  --ok:#6cc58f; --ok-soft:#1b3024; --bad:#ef8a7e; --bad-soft:#3b211e; --warn:#e8c46a; --warn-soft:#3a3018; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --base:#1d1f22; --surface:#26292d; --ink:#ece5d8; --muted:#a9a296; --line:#3a3d42; --soft:#2f3236;
+  --accent:#5b7dff; --accent-ink:#ffffff; --accent-soft:#232d52;
+  --ok:#6cc58f; --ok-soft:#1b3024; --bad:#ef8a7e; --bad-soft:#3b211e; --warn:#e8c46a; --warn-soft:#3a3018; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--base);color:var(--ink);font:15px/1.55 var(--body)}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:20px;font-weight:800}h2{font-size:26px;font-weight:800;letter-spacing:-.01em}h3{font-size:16px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100%}
+.rail{background:var(--ink);color:var(--base);padding:22px 14px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh}
+.brand{padding:0 8px;display:grid;gap:3px}
+.brand small{font:500 11px/1.3 var(--mono);opacity:.65;text-transform:uppercase;letter-spacing:.1em}
+.nav{display:grid;gap:2px}
+.nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:6px;font-weight:500;opacity:.85}
+.nav button:hover{background:rgba(255,255,255,.07);opacity:1}
+.nav button[aria-current="page"]{background:var(--base);color:var(--ink);opacity:1}
+.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav .count{font:500 11px/1 var(--mono);opacity:.75}
+.rail-foot{margin-top:auto;font-size:12px;opacity:.75;padding:0 8px;display:grid;gap:6px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#888;margin-right:6px;vertical-align:middle}
+.dot.on{background:#6cc58f}.dot.off{background:#ef8a7e}
+main{padding:30px clamp(16px,3vw,44px) 90px;display:grid;gap:22px;align-content:start;min-width:0}
+.view{display:none;gap:20px;align-content:start}.view.active{display:grid}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.head p{color:var(--muted);max-width:72ch;margin-top:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:14px;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile b{display:block;font:800 26px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--muted)}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.dark{background:var(--ink);color:var(--base);border-color:var(--ink)}
+.btn.small{padding:5px 10px;font-size:13px;border-radius:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label.f{display:grid;gap:5px;font-size:13px;font-weight:600}
+input[type=text],input[type=number],select,textarea{background:var(--base);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+.pill{display:inline-block;font:500 12px/1 var(--mono);padding:5px 9px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.info{background:var(--accent-soft);color:var(--accent)}
+.muted{color:var(--muted)}.small{font-size:13px}.mono{font-family:var(--mono);font-size:13px}
+.list{display:grid;gap:10px}
+.item{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:8px;background:var(--surface)}
+.item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.checks li{display:grid;grid-template-columns:20px 1fr;gap:6px;font-size:14px}
+.checks .i{font-weight:700}.checks .ok .i{color:var(--ok)}.checks .bad .i{color:var(--bad)}.checks .warn .i{color:var(--warn)}
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--soft);border-radius:10px;padding:10px;display:grid;gap:8px;align-content:start;min-height:200px}
+.col-h{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 6px;font-weight:700;font-family:var(--display)}
+.tcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:6px}
+.tcard .nm{font-weight:600;font-size:14px}.tcard .acts{display:flex;gap:6px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{cursor:pointer;border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:999px;font-weight:500}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--base);border-color:var(--ink)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--soft)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.banner{padding:10px 14px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:14px}
+.banner.bad{background:var(--bad-soft);color:var(--bad)}.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stream{white-space:pre-wrap;font:12px/1.5 var(--mono);color:var(--muted);max-height:140px;overflow:auto;background:var(--soft);border-radius:8px;padding:10px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(680px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog form{padding:20px;display:grid;gap:12px;max-height:85vh;overflow:auto}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--ink);color:var(--base);padding:10px 14px;border-radius:8px;font-size:14px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:none}
+/* Task document */
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;display:grid;gap:16px}
+.doc .tid{font:600 13px/1 var(--mono);color:var(--muted)}
+.doc h3.sec{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.doc ol{margin:0;padding-left:22px;display:grid;gap:5px}
+.doc ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.doc table td,.doc table th{padding:7px 10px}
+.vsheet{border:2px solid var(--ink);border-radius:10px;padding:16px;display:grid;gap:8px;background:var(--base)}
+.vsheet b{font-family:var(--display)}
+.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.editgrid .wide{grid-column:1/-1}
+.prog{display:grid;gap:6px}
+.prog .line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}
+details summary{cursor:pointer;font-weight:600}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;padding:12px}
+  .nav{grid-template-columns:repeat(4,1fr)}.nav button{justify-content:center;font-size:13px;padding:8px 4px}.nav .count{display:none}
+  .rail-foot{display:none}
+  .grid2,.grid3,.editgrid{grid-template-columns:1fr}
+}
+@media (max-width:480px){.nav{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><small>Verlet Robotics</small><h1>Task Agent</h1></div>
+    <nav class="nav" aria-label="Screens">
+      <button data-v="today" aria-current="page">Today</button>
+      <button data-v="write">Write <span class="count" id="nc-write"></span></button>
+      <button data-v="ideas">Ideas</button>
+      <button data-v="pipeline">Pipeline <span class="count" id="nc-pipe"></span></button>
+      <button data-v="news">News <span class="count" id="nc-news"></span></button>
+      <button data-v="sourcing">Sourcing <span class="count" id="nc-src"></span></button>
+      <button data-v="rules">Rules</button>
+      <button data-v="library">Library</button>
+    </nav>
+    <div class="rail-foot">
+      <div><span class="dot" id="dot-db"></span><span id="st-db">Store: connecting…</span></div>
+      <div><span class="dot" id="dot-ai"></span><span id="st-ai">Claude: waiting</span></div>
+      <div id="st-rules">Rules: loading…</div>
+      <div id="st-me"></div>
+    </div>
+  </aside>
+
+<main>
+<div id="global-banner"></div>
+
+<!-- TODAY -->
+<section class="view active" id="v-today">
+  <div class="head"><div><h2>Today</h2><p>Where the work stands, who did what today, and what the agent suggests next.</p></div></div>
+  <div class="tiles" id="today-tiles"></div>
+  <div class="grid2">
+    <div class="card"><div class="item-top"><h3>Done today, by person</h3><span class="small muted" id="today-date"></span></div><div id="today-people"></div></div>
+    <div class="card"><div class="item-top"><h3>This morning's news</h3><button class="btn small" data-go="news">Open News</button></div><div id="today-news"></div></div>
+  </div>
+  <div class="card">
+    <div class="item-top"><div><h3>Agent briefing</h3><p class="muted small" id="brief-when">Not run yet.</p></div><button class="btn primary" id="run-brief">What should we look at?</button></div>
+    <div id="brief-out" class="list"><div class="empty">The agent reads the library, the news, the items still needed and your pipeline, then suggests 3 to 5 next moves.</div></div>
+  </div>
+</section>
+
+<!-- WRITE -->
+<section class="view" id="v-write">
+  <div class="head"><div><h2>Write tasks</h2><p>Paste task names, one per line. The agent gives each an ID, writes the full description and its reset under the in-house rules, runs the checks and saves it. Open any task below to read, edit or rewrite it.</p></div></div>
+  <div class="card">
+    <label class="f" for="b-names">Task names (one per line; optional: add notes after a vertical bar, e.g. "Staple three sheets into one document | use the desktop stapler")</label>
+    <textarea id="b-names" rows="7" placeholder="Staple three sheets into one document and file it&#10;Hang the button shirt on a hanger and button it&#10;Pour red water through the funnel into the thermos cup"></textarea>
+    <div class="row">
+      <label class="f" style="min-width:240px">Category code <select id="b-code"></select></label>
+      <label class="f" style="flex:1;min-width:240px">Bunch family name (optional) <input type="text" id="b-bunch" placeholder="e.g. Fill and close tubes"></label>
+      <button class="btn primary" id="b-go" style="align-self:end">Write all</button>
+      <button class="btn" id="b-stop" style="align-self:end" hidden>Stop after this one</button>
+    </div>
+    <p class="small muted">Keep this page open while it writes. Each task takes about a minute. Rules in use: <span id="b-rules"></span>.</p>
+    <div id="b-prog" class="prog"></div>
+  </div>
+  <div class="card">
+    <div class="item-top"><div><h3>Written tasks</h3><p class="small muted" id="w-count"></p></div>
+      <div class="row"><input type="text" id="w-q" placeholder="Search ID or name" style="width:220px"><select id="w-filter" style="width:200px"><option value="">All</option><option value="fail">Has failing checks</option><option value="stale">Older rules version</option><option value="mine">Added by me</option></select></div></div>
+    <div id="w-list"></div>
+  </div>
+  <div id="w-doc"></div>
+  <div class="card">
+    <div class="item-top"><div><h3>Export and share with Codex</h3><p class="small muted">Excel for the team, Markdown to print the task cards and Variation Sheets, JSON for Codex. Codex's work comes back with "Import from Codex".</p></div></div>
+    <div class="row">
+      <button class="btn dark" id="x-xlsx">Excel (.xlsx)</button><button class="btn" id="x-md">Print cards (Markdown)</button><button class="btn" id="x-json">For Codex (JSON)</button>
+      <label class="btn" for="x-import" style="cursor:pointer">Import from Codex</label><input type="file" id="x-import" accept=".json,application/json" hidden>
+      <label class="small"><input type="checkbox" id="x-only-ok" checked> Only tasks with no failing checks</label>
+    </div>
+    <div id="x-info" class="small muted"></div>
+  </div>
+</section>
+
+<!-- IDEAS -->
+<section class="view" id="v-ideas">
+  <div class="head"><div><h2>Ideas</h2><p>Check one idea against the bench, the stock, the real tools and the platform, or brainstorm many names. Good names go to the Pipeline, then to Write.</p></div>
+    <div class="tabs" role="group" aria-label="Mode"><button id="m-check" aria-pressed="true">Check an idea</button><button id="m-brain" aria-pressed="false">Brainstorm</button></div></div>
+  <div class="card" id="pane-check">
+    <label class="f" for="idea-text">Your idea, in plain words</label>
+    <textarea id="idea-text" placeholder="e.g. Hang the zip jacket on a hanger and zip it to the top"></textarea>
+    <div><button class="btn primary" id="do-check">Can we build this?</button></div>
+    <div id="check-stream"></div><div id="check-out"></div>
+  </div>
+  <div class="card" id="pane-brain" hidden>
+    <div class="grid3">
+      <label class="f">Category <select id="brain-code"></select></label>
+      <label class="f">How many names <input type="number" id="brain-n" min="3" max="25" value="20"></label>
+      <label class="f">Items <select id="brain-stock"><option value="no">Needs items allowed</option><option value="yes">In stock only</option></select></label>
+    </div>
+    <label class="f" for="brain-focus">Focus (optional)</label>
+    <input type="text" id="brain-focus" placeholder="e.g. office jobs with real stationery; two-handed jobs with lids">
+    <div><button class="btn primary" id="do-brain">Brainstorm</button></div>
+    <div id="brain-stream"></div><div id="brain-out"></div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="view" id="v-pipeline">
+  <div class="head"><div><h2>Pipeline</h2><p>Every name moves left to right. Confirmed is the one place for names you approved. Written tasks open in Write.</p></div><button class="btn" id="add-manual">Add a name</button></div>
+  <div class="board" id="board"></div>
+</section>
+
+<!-- NEWS -->
+<section class="view" id="v-news">
+  <div class="head"><div><h2>News and leads</h2><p>The daily briefing arrives each morning before 9:00 Kigali time: what robotics companies are recording and building, with sources, and task leads that fit our bench.</p></div></div>
+  <div id="news-list" class="list"></div>
+</section>
+
+<!-- SOURCING -->
+<section class="view" id="v-sourcing">
+  <div class="head"><div><h2>Sourcing</h2><p>Everything still needed: how many for 4 rigs, size, price and where to buy, Kigali first. A price counts as verified only with a link and a date.</p></div><button class="btn" id="src-add">Add item</button></div>
+  <div class="tiles" id="src-tiles"></div>
+  <div class="tabs" role="group" aria-label="Filter" id="src-filter"></div>
+  <div id="src-list" class="list"></div>
+  <div class="card">
+    <div class="item-top"><div><h3>Research queue</h3><p class="muted small">Questions for Claude to research on the web. In a chat with Claude, say "run the Verlet research queue". Answers come back here with sources.</p></div><button class="btn" id="rq-add">Ask a research question</button></div>
+    <div id="rq-list" class="list"></div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="view" id="v-rules">
+  <div class="head"><div><h2>Rules</h2><p>The in-house rule group every new description follows. Edit or add a rule, and the agent checks it against all the others before it is saved. Customer rule groups will sit beside this one.</p></div>
+    <div class="row"><button class="btn" id="r-add">Add a rule</button><button class="btn primary" id="r-check">Check for conflicts</button></div></div>
+  <div class="card" id="r-head"></div>
+  <div id="r-conf"></div>
+  <div id="r-list" class="list"></div>
+</section>
+
+<!-- LIBRARY -->
+<section class="view" id="v-library">
+  <div class="head"><div><h2>Library</h2><p>What already exists in the master workbook, the items on the bench, the bench facts and the lessons from the rigs.</p></div>
+    <div class="tabs" role="group" aria-label="Library part"><button data-lib="fam" aria-pressed="true">Task families</button><button data-lib="items" aria-pressed="false">Items</button><button data-lib="bench" aria-pressed="false">Bench</button><button data-lib="notes" aria-pressed="false">Lessons</button></div></div>
+  <div class="row" id="lib-bar"><input type="text" id="lib-q" placeholder="Search names, items, IDs…" style="max-width:360px"><select id="lib-g" style="max-width:260px"></select><span class="small muted" id="lib-n"></span></div>
+  <div id="lib-out"></div>
+</section>
+</main>
+</div>
+
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var ZN=["Supply","Tool","Used Equipment","Staging","Operation","Finished Goods"];
+var ZFULL={"Supply":"Supply Zone (1)","Tool":"Tool Zone (2)","Used Equipment":"Used Equipment Zone (3)","Staging":"Staging Zone (4)","Operation":"Operation Zone (5)","Finished Goods":"Finished Goods Zone (6)"};
+var DEF_CODES={LIQ:"Liquids",LAB:"Tubes, racks and boxes",LID:"Lids, latches and cases",TOL:"Tools and fasteners",CAB:"Cables and wire",SRT:"Look-alike sorting",HOM:"Home, desk and books",CLO:"Clothing and hangers",PAK:"Packing and wrapping",FIX:"Replace and exchange"};
+var STAGES=[["idea","Ideas"],["confirmed","Confirmed"],["described","Written"],["exported","Exported"]];
+var S={db:null,sample:null,downloads:null,user:null,uid:null,ref:{},rules:null,rulesVer:null,tasks:[],sourcing:[],research:[],notes:[],news:[],brief:null,openId:null,editing:false,libTab:"fam",srcFilter:"all",stop:false,people:{}};
+var $=function(id){return document.getElementById(id)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("show")},2800)}
+function now(){return new Date().toISOString()}
+function kigaliDay(d){d=d||new Date();var k=new Date(d.getTime()+2*3600*1000);return k.toISOString().slice(0,10)}
+function day(iso){if(!iso)return "";try{return new Date(iso).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}catch(e){return iso}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function arr(x){return Array.isArray(x)?x:(x==null||x===""?[]:String(x).split(/\n+/).map(function(s){return s.trim()}).filter(Boolean))}
+function codes(){return (S.rules&&S.rules.codes)||DEF_CODES}
+
+/* ---------- navigation ---------- */
+var VIEWS=["today","write","ideas","pipeline","news","sourcing","rules","library"];
+function show(v){if(VIEWS.indexOf(v)<0)v="today";VIEWS.forEach(function(x){$("v-"+x).classList.toggle("active",x===v)});document.querySelectorAll(".nav button").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===v?"page":"false")});if(location.hash!=="#"+v){try{history.replaceState(null,"","#"+v)}catch(e){}}window.scrollTo(0,0)}
+document.querySelectorAll(".nav button").forEach(function(b){b.addEventListener("click",function(){show(b.dataset.v)})});
+document.addEventListener("click",function(e){var g=e.target.closest&&e.target.closest("[data-go]");if(g)show(g.dataset.go)});
+window.addEventListener("hashchange",function(){show(location.hash.slice(1))});
+
+/* ---------- capabilities ---------- */
+function setDot(id,on,text){$("dot-"+id).className="dot "+(on?"on":"off");$("st-"+id).textContent=text}
+function banner(msg,kind){$("global-banner").innerHTML=msg?'<div class="banner '+(kind||"")+'">'+esc(msg)+'</div>':""}
+function waitUse(name){return new Promise(function(res){var done=false;var t=setTimeout(function(){if(!done){done=true;res(null)}},10000);function go(){window.claude.use(name).then(function(v){if(!done){done=true;clearTimeout(t);res(v)}},function(){if(!done){done=true;clearTimeout(t);res(null)}})}
+  try{if(window.claude&&window.claude.use)go();else{var n=0;var iv=setInterval(function(){n++;if(window.claude&&window.claude.use){clearInterval(iv);go()}else if(n>40)clearInterval(iv)},250)}}catch(e){done=true;clearTimeout(t);res(null)}})}
+function loadRef(){var names=["bench","library","assets"];Promise.all(names.map(function(n){return fetch("ref/"+n+".json").then(function(r){if(!r.ok)throw 0;return r.json()})})).then(function(a){names.forEach(function(n,i){S.ref[n]=a[i]});renderAll()}).catch(function(){banner("The reference files (library and items) could not be loaded. Reload the page.","bad")})}
+function snapList(col,key,after){return S.db.collection(col).onSnapshot(function(s){S[key]=s.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x});after()},errSub)}
+function boot(){
+  loadRef();
+  waitUse("sample").then(function(s){S.sample=s;setDot("ai",!!s,s?"Claude: ready":"Claude: not available here")});
+  waitUse("downloads").then(function(d){S.downloads=d});
+  waitUse("user").then(function(u){S.user=u;if(!u)return;u.id().then(function(id){S.uid=id;renderAll()});u.me().then(function(m){$("st-me").textContent=m.name?("Signed in as "+m.name):""})});
+  waitUse("db").then(function(db){
+    S.db=db;
+    if(!db){setDot("db",false,"Store: not available");banner("The shared store is not available here, so nothing can be saved. Open the page on claude.ai while signed in.","bad");renderAll();return}
+    setDot("db",true,"Store: connected");
+    var loaded=false;var timer=setTimeout(function(){if(!loaded)banner("The store has not answered yet. Data may be missing or out of date.")},10000);
+    db.doc("rules/inhouse").onSnapshot(function(d){loaded=true;clearTimeout(timer);banner("");S.rules=d.exists?d.data():null;S.rulesVer=S.rules&&S.rules.version;$("st-rules").textContent=S.rules?("Rules: in-house v"+S.rules.version):"Rules: not loaded";renderAll()},function(e){clearTimeout(timer);errSub(e)});
+    snapList("tasks","tasks",renderAll);
+    snapList("sourcing","sourcing",function(){renderSourcing();renderToday()});
+    snapList("research","research",renderResearch);
+    snapList("notes","notes",function(){if(S.libTab==="notes")renderLibrary()});
+    snapList("news","news",function(){renderNews();renderToday()});
+    db.doc("briefs/latest").onSnapshot(function(d){S.brief=d.exists?d.data():null;renderBrief()},errSub);
+  });
+  renderAll();
+}
+function errSub(e){banner("A live list stopped updating ("+(e&&e.code)+"). Reload the page to reconnect.","bad")}
+
+/* ---------- writes ---------- */
+var busy={};
+function save(col,id,data){if(!S.db){toast("Cannot save: the store is not available.");return Promise.reject()}var k=col+"/"+id;var p=(busy[k]||Promise.resolve()).then(function(){return S.db.collection(col).doc(id).set(data)});busy[k]=p.catch(function(){});return p.catch(function(e){toast(e&&e.code==="quota_exceeded"?"The store is full. Delete old items first.":"Could not save ("+(e&&e.code||"error")+").");throw e})}
+function del(col,id){if(!S.db)return Promise.reject();return S.db.collection(col).doc(id).delete().catch(function(e){toast("Could not delete ("+e.code+").")})}
+function clean(o){var x=JSON.parse(JSON.stringify(o));delete x.id;return x}
+function stamp(d,isNew){d.updatedAt=now();if(S.uid)d.editedBy=S.uid;if(isNew){d.createdAt=d.createdAt||now();if(S.uid&&!d.addedBy)d.addedBy=S.uid}return d}
+
+/* ---------- context for Claude ---------- */
+function rulesText(){var r=S.rules;if(!r)return "(rules not loaded)";var sec="",out=[];r.rules.slice().sort(function(a,b){return a.n-b.n}).forEach(function(x){if(x.section!==sec){sec=x.section;out.push("\n["+sec+"]")}out.push(x.n+". "+x.text)});return r.group+" v"+r.version+out.join("\n")}
+function libText(){var f=(S.ref.library&&S.ref.library.families)||[];return f.map(function(x){return x.id+" ["+x.group+"] "+x.family+" | "+x.task}).join("\n")}
+function newText(){return S.tasks.filter(function(t){return t.doc}).map(function(t){return t.doc.id+" · "+t.doc.name}).join("\n")||"(none yet)"}
+function assetText(){var a=(S.ref.assets&&S.ref.assets.items)||[];return a.map(function(x){return x.name+" ("+x.looks+"; "+x.stock+")"}).join("\n")}
+function benchText(){var b=S.ref.bench||{};return ["Location: "+(b.location||"Kigali, Rwanda"),"Rigs: "+(b.rigs||4),"Robot: two-jaw grippers with a 95 mm opening; leader and follower arms; arms are never named.","Bench: six zones on a mat, no tape lines; operators and QC know the zone names: "+ZN.join(", ")+".","Platform (do not repeat; reverse only): "+(b.platformKnown||"")].join("\n")}
+function pipeText(){return S.tasks.map(function(t){return "- ["+t.status+"] "+(t.doc?t.doc.id+" · "+t.doc.name:t.name)}).join("\n")||"(empty)"}
+function needText(){return S.sourcing.map(function(s){return s.name+" ("+s.status+")"}).join("\n")}
+function lessonsText(){return S.notes.map(function(n){return "- "+n.text}).join("\n")||"(none)"}
+function ask(prompt,opts){opts=opts||{};if(!S.sample)return Promise.reject({code:"not_granted",message:"Claude is not available in this view."});var o={modelTier:opts.tier||"default"};if(opts.onText)o.onText=opts.onText;
+  return S.sample(prompt,o).then(function(r){var txt=r&&r.text||"";if(!opts.json)return txt;var s=txt.indexOf("{"),e=txt.lastIndexOf("}");if(s<0||e<s)throw {code:"bad_json",message:"The answer was not in the expected format. Try again."};try{return JSON.parse(txt.slice(s,e+1))}catch(err){throw {code:"bad_json",message:"The answer could not be read. Try again."}}})}
+function aiErr(el,e){var m=e&&e.code==="rate_limited"?"Claude is busy. Wait a minute, then try again.":e&&e.code==="not_granted"?"Claude was not allowed for this page. Allow it when the page asks.":(e&&e.message)||"Something went wrong.";el.innerHTML='<div class="banner bad">'+esc(m)+'</div>'}
+function streamTo(id){var el=$(id);el.innerHTML='<div class="row small muted"><span class="spin"></span> Thinking…</div><div class="stream" hidden></div>';var box=el.querySelector(".stream");return {on:function(p){box.hidden=false;box.textContent=p.text.slice(-900);box.scrollTop=box.scrollHeight},done:function(){el.innerHTML=""}}}
+
+/* ---------- model examples for the writer ---------- */
+var MODEL=[{
+ code:"LIQ",name:"Transfer red water into a 50 mL tube and close it",
+ instruction:"Transfer one pipette fill of red water from the cup into the 50 mL tube, close the tube, and leave it in the tube rack.",
+ initial:[{item:"50 mL tube",how:"empty, cap off",zones:["Supply","Staging"],role:"moves"},{item:"10 mL pipette",how:"empty",zones:["Tool","Staging","Used Equipment"],role:"moves"},{item:"50 mL tube rack",how:"holes empty",zones:["Operation","Finished Goods"],role:"stays"},{item:"Plastic cup",how:"holding red water",zones:["Supply","Staging"],role:"stays"}],
+ steps:["Put the 50 mL tube into an empty hole of the tube rack, until it stands in the hole.","Fill the 10 mL pipette from the cup, until the bulb returns to its open shape.","Squeeze the pipette over the 50 mL tube until the pipette is empty, and place the pipette in a zone different from where it started.","Close the 50 mL tube with its cap until the cap stops turning, and leave it in the same hole of the rack. The tube may come out of the rack while it is closed, and it is closed after it is filled."],
+ target:["50 mL tube: holding red water, closed, in the same hole of the tube rack.","10 mL pipette: empty, in a zone different from where it started.","Tube rack and plastic cup: where they started."],
+ free:"Which hole, how the tube is closed, how each item is held, how the pipette lies.",
+ qc:["The 50 mL tube goes into a hole of the rack.","The pipette fills from the cup.","The pipette empties into the tube, and the pipette ends in a new zone.","The tube is closed and back in the same hole."],
+ pass:"Target State seen, no red water on the mat, nothing fell.",
+ fail:"The tube is open or in a different hole; red water on the mat or on the outside of the tube; the pipette is in its start zone; the rack or the cup moved; an item fell.",
+ realTools:"10 mL transfer pipette and 50 mL conical tube, as used in real labs. In stock. Not improvised.",needs:"None",usesUp:"About 10 mL of red water per episode.",rigTest:"The gripper can squeeze the pipette bulb and turn the tube cap until it stops.",
+ reverse:{possible:true,why:"",instruction:"Empty the 50 mL tube back into the cup, leave it open with its cap beside it, and put the pipette back in one of its start zones.",steps:["Open the 50 mL tube, until the cap is off.","Pour the red water from the tube into the cup, until the tube is empty.","Place the empty tube and its cap in one of the tube's start zones, not the zone it just ended in.","Place the pipette in one of its start zones, not the zone it just ended in."],target:["50 mL tube: empty, cap off, in Supply or Staging.","10 mL pipette: empty, in Tool, Staging or Used Equipment.","Tube rack and plastic cup: where they started."],qc:["The cap comes off the tube.","The red water goes from the tube into the cup.","The empty tube and its cap end in a start zone.","The pipette ends in a start zone."],pass:"Target State seen, no red water on the mat, nothing fell.",fail:"Red water left in the tube; red water on the mat; the tube or the pipette in the zone it started this reset in; an item fell."},
+ variation:{start:"Tube, cap and pipette may lie or stand any way in their listed zones.",doing:"Fill the pipette with the tube already in the rack or before; close the tube in the rack or lift it out first; hold the tube with one gripper and turn with the other, or turn in the rack.",end:"Any hole; the pipette may lie any way in its new zone.",qcNever:"Grip, angle, which hole, how the tube is closed.",mistakes:"Tube put back in a different hole; drops on the outside of the tube; pipette left in its start zone."}
+}];
+var OUT_SCHEMA='{"code":"LIQ|LAB|LID|TOL|CAB|SRT|HOM|CLO|PAK|FIX","name":"","instruction":"","initial":[{"item":"","how":"","zones":["Supply"],"role":"moves|stays|not used"}],"steps":[""],"target":[""],"free":"","qc":[""],"pass":"","fail":"","realTools":"","needs":"None or items","usesUp":"None or what and how much per episode","rigTest":"","reverse":{"possible":true,"why":"","instruction":"","steps":[""],"target":[""],"qc":[""],"pass":"","fail":""},"variation":{"start":"","doing":"","end":"","qcNever":"","mistakes":""},"platformRisk":"None or the platform task it is close to"}';
+
+function writerPrompt(name,notes,code,extra){
+  return "You write one teleoperation task description for Verlet Robotics, in Kigali. Follow every rule below exactly. No invented facts: where a size, fit or stock fact is unknown, put it in rigTest as something to test, or in needs.\n\nRULES\n"+rulesText()+
+  "\n\nBENCH\n"+benchText()+
+  "\n\nITEMS IN THE ASSET POOL (use these names when the item is here; anything else is a Needs item)\n"+assetText()+
+  "\n\nLESSONS FROM THE RIGS\n"+lessonsText()+
+  "\n\nTASKS ALREADY IN THE OLD WORKBOOK (do not copy their wording)\n"+libText()+
+  "\n\nNEW TASKS ALREADY WRITTEN (do not repeat)\n"+newText()+
+  "\n\nMODEL TASK (match its style, detail and length)\n"+JSON.stringify(MODEL[0])+
+  "\n\nTASK TO WRITE\nName given: "+name+(notes?"\nNotes from the owner: "+notes:"")+(code?"\nCategory code: "+code:"\nChoose the best category code.")+(extra?"\n\n"+extra:"")+
+  "\n\nHOW TO WRITE IT\n- Improve the name into the general words people use for the job, keep its meaning.\n- Write the steps first (at most 5), then trace the instruction, target, QC, pass and fail from them.\n- Zones must be exactly from: "+ZN.join(", ")+". Each moving item lists 2 or 3 start zones; stays-in-place items list 1 to 3.\n- No \"then\" anywhere. No grab method, gripper or angle in steps. No colours unless needed. No position words unless the job needs them.\n- QC has exactly one line per step, same order.\n- fail: concrete wrong results separated by semicolons, at least three.\n- Reverse: follow the reverse rule; if the job cannot really be undone, possible=false with why.\n- Variation sheet: real alternative ways an operator can start, do and end this job.\n\nAnswer with JSON only, in this shape:\n"+OUT_SCHEMA;
+}
+
+/* ---------- checks ---------- */
+var BANNED=["firmly","neatly","properly","all the way","around","about","some","as needed","carry","tilt","lift","set down","let go","slide"];
+var POS=["middle","top","bottom","left","right","beside","side by side","in a row"];
+var COLOURS=["blue","green","yellow","orange","purple","pink","black","white","grey","gray","brown"];
+function rx(w){return new RegExp("\\b"+w.replace(/\s+/g,"\\s+")+"\\b","i")}
+function checkDoc(d){
+  var out=[];function add(ok,name,note,level){out.push({ok:!!ok,level:ok?"ok":(level||"bad"),name:name,note:note||""})}
+  var c=codes();add(/^[A-Z]{3}-\d{3}$/.test(d.id||"")&&c[d.code],"ID is a known code and 3 digits",d.id||"no ID");
+  add(d.name&&d.name.length>5,"Task name present");
+  var ins=String(d.instruction||"").trim();add(ins&&ins.split(/[.!?](\s|$)/).filter(function(x){return x&&x.trim()}).length===1,"Instruction is one sentence");
+  var ini=d.initial||[];var badZ=[];ini.forEach(function(r){(r.zones||[]).forEach(function(z){if(ZN.indexOf(z)<0)badZ.push(z)})});
+  add(ini.length>0&&ini.every(function(r){return r.item&&r.how&&(r.zones||[]).length}),"Initial State: every item has how it starts and start zones");
+  add(!badZ.length,"Only the six zone names are used",badZ.length?"Unknown: "+badZ.join(", "):"");
+  var mv=ini.filter(function(r){return r.role==="moves"});add(mv.every(function(r){return (r.zones||[]).length>=2}),"Every moving item has at least two start zones","","warn");
+  var st=d.steps||[],qc=d.qc||[];
+  add(st.length>=1&&st.length<=5,"At most 5 steps",st.length+" steps");
+  add(qc.length===st.length,"One QC line per step",qc.length+" QC lines, "+st.length+" steps");
+  var all=[d.instruction].concat(st,d.target||[],qc,[d.pass,d.fail,d.free]).join("\n");
+  add(!/\bthen\b/i.test(all),"No “then”");
+  var stepTxt=st.join("\n");
+  add(!/\bgripper|\bangle\b|\bleft arm\b|\bright arm\b|\bleader\b|\bfollower\b/i.test(stepTxt),"Steps never say gripper, angle or arm");
+  var body=all.replace(/full turns around/gi,"");var hits=BANNED.filter(function(w){return rx(w).test(body)});add(!hits.length,"No banned words",hits.join(", "));
+  var ph=POS.filter(function(w){return rx(w).test(body)});add(!ph.length,"No position words unless the job needs them",ph.join(", "),"warn");
+  var ch=COLOURS.filter(function(w){return rx(w).test(body)});add(!ch.length,"No colours unless needed",ch.join(", "),"warn");
+  var dang=st.filter(function(s){return /\buntil\s*[.,;]?$/i.test(s)});add(!dang.length,"Every “until” ends at something visible");
+  add((d.target||[]).length>0,"Target State has a line per item");
+  add(String(d.free||"").trim().length>0,"Free line present");
+  add(String(d.fail||"").split(";").filter(function(x){return x.trim()}).length>=3,"Fail lists at least three concrete results");
+  add(String(d.realTools||"").trim().length>0,"Real tools named");
+  add(String(d.usesUp||"").trim().length>0,"Uses-up line present");
+  var strip=function(s){return String(s).toLowerCase().replace(new RegExp("\\b("+COLOURS.concat(["red","clear"]).join("|")+")\\b","g"),"").replace(/\s+/g," ").trim()};
+  var A=((S.ref.assets&&S.ref.assets.items)||[]).map(function(a){return strip(a.name)});
+  var unk=ini.map(function(r){return r.item}).filter(function(n){if(!n)return false;var k=strip(n);return !A.some(function(a){return a===k||a.indexOf(k)>=0||k.indexOf(a)>=0})});
+  var needs=String(d.needs||"").toLowerCase();var unlisted=unk.filter(function(n){return needs.indexOf(n.toLowerCase())<0&&!/^\d+\s/.test(n)});
+  add(!unlisted.length,"Items not in the Asset Pool are listed as Needs",unlisted.length?unlisted.join(", "):"","warn");
+  var r=d.reverse||{};if(r.possible===false){add(String(r.why||"").trim(),"No-reverse reason given")}
+  else{var rs=r.steps||[],rq=r.qc||[];add(rs.length>=1&&rs.length<=5&&rq.length===rs.length,"Reset: at most 5 steps, one QC line each",rs.length+" steps, "+rq.length+" QC");add(!/\bthen\b/i.test([r.instruction].concat(rs,rq).join(" ")),"Reset: no “then”")}
+  var v=d.variation||{};add(v.doing&&v.end,"Variation Sheet written");
+  return out;
+}
+function checkSummary(t){var c=t.checks||[];var bad=c.filter(function(x){return !x.ok&&x.level==="bad"}).length,warn=c.filter(function(x){return !x.ok&&x.level==="warn"}).length;return {bad:bad,warn:warn,n:c.length}}
+function stale(t){return t.doc&&S.rulesVer&&t.rulesVersion&&t.rulesVersion!==S.rulesVer}
+
+/* ---------- IDs ---------- */
+var reserved={};
+function nextId(code){var max=0;S.tasks.forEach(function(t){var m=t.doc&&t.doc.id&&t.doc.id.match(/^([A-Z]{3})-(\d{3})$/);if(m&&m[1]===code)max=Math.max(max,+m[2])});max=Math.max(max,reserved[code]||0);reserved[code]=max+1;return code+"-"+String(max+1).padStart(3,"0")}
+
+/* ---------- WRITE: batch ---------- */
+function fillCodeSelects(){var c=codes();var o=Object.keys(c).map(function(k){return '<option value="'+k+'">'+k+' · '+esc(c[k])+'</option>'}).join("");var b=$("b-code"),v=b.value;b.innerHTML='<option value="">Agent chooses</option>'+o;b.value=v||"";var g=$("brain-code"),gv=g.value;g.innerHTML=o;if(gv)g.value=gv;$("b-rules").textContent=S.rules?(S.rules.group+" v"+S.rules.version+", "+S.rules.rules.length+" rules"):"not loaded"}
+$("b-go").addEventListener("click",function(){
+  var lines=$("b-names").value.split(/\n+/).map(function(s){return s.trim()}).filter(Boolean);
+  if(!lines.length){toast("Paste at least one task name.");return}
+  if(!S.rules){toast("The rules have not loaded yet.");return}
+  if(!S.sample){toast("Claude is not available here.");return}
+  var code=$("b-code").value,bunch=$("b-bunch").value.trim();S.stop=false;$("b-go").disabled=true;$("b-stop").hidden=false;
+  var prog=$("b-prog");prog.innerHTML=lines.map(function(l,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(l.split("|")[0])+'</span><span class="pill">Waiting</span></div>'}).join("");
+  var i=0;
+  function setP(i,html){var el=$("bp-"+i);if(el)el.lastChild.outerHTML=html}
+  function nextOne(){
+    if(i>=lines.length||S.stop){$("b-go").disabled=false;$("b-stop").hidden=true;toast(S.stop?"Stopped.":"All written. Open each task to review.");return}
+    var parts=lines[i].split("|"),name=parts[0].trim(),notes=(parts[1]||"").trim(),idx=i;
+    setP(idx,'<span class="pill info"><span class="spin"></span> Writing</span>');
+    writeOne(null,name,notes,code,bunch).then(function(t){var s=checkSummary(t);setP(idx,'<span class="row"><button class="btn small" data-open="'+t.id+'">'+esc(t.doc.id)+'</button><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"All checks pass")+'</span></span>');bindOpen(prog)})
+    .catch(function(e){setP(idx,'<span class="pill bad">'+esc((e&&e.message)||"Failed")+'</span>')})
+    .then(function(){i++;nextOne()});
+  }
+  nextOne();
+});
+$("b-stop").addEventListener("click",function(){S.stop=true;toast("Will stop after the current task.")});
+function writeOne(existing,name,notes,code,bunch,extra){
+  return ask(writerPrompt(name,notes,code||(existing&&existing.doc&&existing.doc.code)||"",extra),{json:true,tier:"complex"}).then(function(r){
+    var c=codes();var cd=(code||r.code||"").toUpperCase();if(!c[cd])cd=Object.keys(c)[0];
+    var d=normalize(r);d.code=cd;
+    d.id=(existing&&existing.doc&&existing.doc.code===cd)?existing.doc.id:nextId(cd);
+    d.bunch=bunch||(existing&&existing.doc&&existing.doc.bunch)||(c[cd]+" 01 · "+d.name);
+    var t=existing?Object.assign({},existing):{id:uid(),status:"described",source:"Write"};
+    t.name=d.name;t.doc=d;t.status="described";t.rulesVersion=S.rulesVer;t.checks=checkDoc(d);
+    if(!existing&&!S.tasks.some(function(x){return x.id===t.id}))S.tasks.push(t);
+    return save("tasks",t.id,stamp(clean(t),!existing)).then(function(){return t});
+  });
+}
+function normalize(r){
+  var d={name:String(r.name||"").trim(),instruction:String(r.instruction||"").trim(),initial:(r.initial||[]).map(function(x){return {item:String(x.item||"").trim(),how:String(x.how||"any way").trim(),zones:(x.zones||[]).map(function(z){return String(z).replace(/\s*Zone.*$/i,"").trim()}),role:x.role||"moves"}}),
+    steps:(r.steps||[]).map(String),target:(r.target||[]).map(String),free:String(r.free||""),qc:(r.qc||[]).map(String),pass:String(r.pass||""),fail:String(r.fail||""),realTools:String(r.realTools||""),needs:String(r.needs||"None"),usesUp:String(r.usesUp||"None"),rigTest:String(r.rigTest||""),platformRisk:String(r.platformRisk||"None"),
+    reverse:Object.assign({possible:true,why:"",instruction:"",steps:[],target:[],qc:[],pass:"",fail:""},r.reverse||{}),variation:Object.assign({start:"",doing:"",end:"",qcNever:"",mistakes:""},r.variation||{})};
+  d.steps=d.steps.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});d.qc=d.qc.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});
+  d.reverse.steps=(d.reverse.steps||[]).map(function(s){return String(s).replace(/^\s*\d+[.)]\s*/,"")});d.reverse.qc=(d.reverse.qc||[]).map(function(s){return String(s).replace(/^\s*\d+[.)]\s*/,"")});
+  return d;
+}
+
+/* ---------- WRITE: list and document ---------- */
+function written(){return S.tasks.filter(function(t){return t.doc})}
+function renderWriteList(){
+  var q=$("w-q").value.trim().toLowerCase(),f=$("w-filter").value;
+  var L=written().filter(function(t){var s=checkSummary(t);if(f==="fail"&&!s.bad)return false;if(f==="stale"&&!stale(t))return false;if(f==="mine"&&t.addedBy!==S.uid)return false;return !q||(t.doc.id+" "+t.doc.name).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)});
+  $("w-count").textContent=written().length+" written · "+L.length+" shown";
+  $("nc-write").textContent=written().length||"";
+  if(!L.length){$("w-list").innerHTML='<div class="empty">'+(written().length?"No match.":"Nothing written yet. Paste task names above.")+'</div>';return}
+  $("w-list").innerHTML='<div class="tbl"><table><thead><tr><th>ID</th><th>Task</th><th>Checks</th><th>Rules</th><th>Status</th><th></th></tr></thead><tbody>'+L.map(function(t){var s=checkSummary(t);return '<tr><td class="mono">'+esc(t.doc.id)+'</td><td><b>'+esc(t.doc.name)+'</b><div class="small muted">'+esc(t.doc.bunch||"")+'</div></td><td><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"Pass")+'</span></td><td>'+(stale(t)?'<span class="pill warn">v'+esc(t.rulesVersion)+' (older)</span>':'<span class="pill">v'+esc(t.rulesVersion||"?")+'</span>')+'</td><td><span class="pill">'+esc(t.status)+'</span></td><td><button class="btn small" data-open="'+t.id+'">Open</button></td></tr>'}).join("")+'</tbody></table></div>';
+  bindOpen($("w-list"));
+}
+function bindOpen(root){root.querySelectorAll("[data-open]").forEach(function(b){b.onclick=function(){openTask(b.dataset.open)}})}
+$("w-q").addEventListener("input",renderWriteList);$("w-filter").addEventListener("change",renderWriteList);
+function openTask(id){S.openId=id;S.editing=false;show("write");renderDoc();setTimeout(function(){var el=$("w-doc");if(el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
+function T(){return S.tasks.filter(function(t){return t.id===S.openId})[0]}
+function zl(z){return (z||[]).join(" / ")}
+function roleTag(r){return r==="stays"?" (stays in place)":r==="not used"?" (not used)":""}
+function docHTML(d){
+  var h='<div class="tid">'+esc(d.id)+' · '+esc(d.bunch||"")+'</div><h2>'+esc(d.name)+'</h2>';
+  h+='<div><h3 class="sec">Instruction</h3><p>'+esc(d.instruction)+'</p></div>';
+  h+='<div><h3 class="sec">Initial State</h3><div class="tbl"><table><thead><tr><th>Item</th><th>How it starts</th><th>Start zones</th></tr></thead><tbody>'+(d.initial||[]).map(function(r){return '<tr><td>'+esc(r.item+roleTag(r.role))+'</td><td>'+esc(r.how)+'</td><td>'+esc(zl(r.zones))+'</td></tr>'}).join("")+'</tbody></table></div></div>';
+  h+='<div><h3 class="sec">Steps</h3><ol>'+(d.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol></div>';
+  h+='<div><h3 class="sec">Target State</h3><ul>'+(d.target||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul><p class="small" style="margin-top:6px"><b>Free:</b> '+esc(d.free)+'</p></div>';
+  h+='<div class="grid2"><div><h3 class="sec">QC check</h3><ol>'+(d.qc||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol></div><div><h3 class="sec">Pass</h3><p>'+esc(d.pass)+'</p><h3 class="sec" style="margin-top:10px">Fail</h3><p>'+esc(d.fail)+'</p></div></div>';
+  h+='<div><h3 class="sec">Notes</h3><ul class="small"><li><b>Real tools:</b> '+esc(d.realTools)+'</li><li><b>Needs:</b> '+esc(d.needs)+'</li><li><b>Uses up:</b> '+esc(d.usesUp)+'</li><li><b>Rig test first:</b> '+esc(d.rigTest)+'</li>'+(d.platformRisk&&d.platformRisk!=="None"?'<li><b>Platform:</b> '+esc(d.platformRisk)+'</li>':"")+'</ul></div>';
+  var r=d.reverse||{};
+  h+='<div><h3 class="sec">Reverse · '+esc(d.id)+'R</h3>'+(r.possible===false?'<p>No reverse. '+esc(r.why)+'</p>':'<p>'+esc(r.instruction)+'</p><div class="grid2" style="margin-top:8px"><div><b class="small">Steps</b><ol class="small">'+(r.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><b class="small">Target State</b><ul class="small">'+(r.target||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul></div><div><b class="small">QC check</b><ol class="small">'+(r.qc||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><p class="small"><b>Pass:</b> '+esc(r.pass)+'</p><p class="small"><b>Fail:</b> '+esc(r.fail)+'</p></div></div>')+'</div>';
+  var v=d.variation||{};
+  h+='<div class="vsheet"><b>VARIATION SHEET · '+esc((d.code||"")+" · "+(d.name||"").toUpperCase())+'</b><p class="small"><b>Start:</b> '+esc(v.start)+'</p><p class="small"><b>Doing it:</b> '+esc(v.doing)+'</p><p class="small"><b>End:</b> '+esc(v.end)+'</p><p class="small"><b>Zone runs:</b> 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.</p><p class="small"><b>QC never judges:</b> '+esc(v.qcNever)+'</p><p class="small"><b>Common mistakes:</b> '+esc(v.mistakes)+'</p></div>';
+  return h;
+}
+function renderDoc(){
+  var t=T(),el=$("w-doc");if(!t||!t.doc){el.innerHTML="";return}
+  var c=t.checks||checkDoc(t.doc),s=checkSummary({checks:c});
+  var head='<div class="card"><div class="item-top"><div class="row"><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?"Passes, "+s.warn+" to look at":"All "+c.length+" checks pass")+'</span>'+(stale(t)?'<span class="pill warn">Written under rules v'+esc(t.rulesVersion)+', now v'+esc(S.rulesVer)+'</span>':"")+'<span class="small muted" id="w-who"></span></div><div class="row">'+(S.editing?'<button class="btn primary" id="d-save">Save changes</button><button class="btn" id="d-cancel">Cancel</button>':'<button class="btn" id="d-edit">Edit</button><button class="btn" id="d-fix">Fix failing checks</button><button class="btn" id="d-rewrite">Rewrite</button><button class="btn" id="d-close">Close</button>')+'</div></div><details><summary class="small">Checks ('+c.length+')</summary><ul class="checks" style="margin-top:8px">'+c.map(function(x){return '<li class="'+x.level+'"><span class="i">'+(x.ok?"✓":x.level==="warn"?"!":"✕")+'</span><span>'+esc(x.name)+(x.note?' <span class="muted">· '+esc(x.note)+'</span>':"")+'</span></li>'}).join("")+'</ul></details><div id="d-stream"></div></div>';
+  el.innerHTML=head+(S.editing?'<div class="card">'+editHTML(t.doc)+'</div>':'<div class="doc">'+docHTML(t.doc)+'</div>');
+  whoLine(t);
+  if(S.editing){$("d-save").onclick=saveEdit;$("d-cancel").onclick=function(){S.editing=false;renderDoc()};el.querySelectorAll("[data-e]").forEach(function(x){x.addEventListener("input",liveCheck)})}
+  else{$("d-edit").onclick=function(){S.editing=true;renderDoc()};$("d-close").onclick=function(){S.openId=null;renderDoc()};$("d-fix").onclick=fixDoc;$("d-rewrite").onclick=function(){var b=this;if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Replace it? Press again";setTimeout(function(){b.dataset.sure="";b.textContent="Rewrite"},4000);return}var st=streamTo("d-stream");writeOne(t,t.doc.name,"",t.doc.code,t.doc.bunch).then(function(){st.done();toast("Rewritten under the current rules.");renderDoc()}).catch(function(e){aiErr($("d-stream"),e)})}}
+}
+function whoLine(t){if(!S.user)return;var ids=[t.addedBy,t.editedBy].filter(Boolean);if(!ids.length)return;S.user.profiles(ids).then(function(ps){var el=$("w-who");if(!el)return;var a=t.addedBy&&ps[t.addedBy]?(ps[t.addedBy].name||"Someone"):"";var e=t.editedBy&&ps[t.editedBy]?(ps[t.editedBy].name||"Someone"):"";el.textContent=(a?"Added by "+a:"")+(e&&t.editedBy!==t.addedBy?" · last edit "+e:"")+(t.source==="Codex"?" · from Codex":"")})}
+function editHTML(d){
+  var r=d.reverse||{},v=d.variation||{};
+  function ta(k,label,val,rows,wide){return '<label class="f'+(wide?" wide":"")+'">'+esc(label)+'<textarea data-e="'+k+'" rows="'+(rows||3)+'">'+esc(val)+'</textarea></label>'}
+  function inp(k,label,val){return '<label class="f">'+esc(label)+'<input type="text" data-e="'+k+'" value="'+esc(val)+'"></label>'}
+  var ini=(d.initial||[]).map(function(x){return [x.item,x.how,zl(x.zones),x.role].join(" | ")}).join("\n");
+  return '<p class="small muted">One line per entry. Initial State lines: Item | How it starts | Zone / Zone | moves or stays or not used.</p><div class="editgrid">'+
+  inp("name","Task name",d.name)+inp("bunch","Bunch",d.bunch||"")+ta("instruction","Instruction",d.instruction,2,true)+ta("initial","Initial State",ini,5,true)+ta("steps","Steps",(d.steps||[]).join("\n"),6,true)+ta("target","Target State",(d.target||[]).join("\n"),4,true)+ta("free","Free",d.free,2,true)+ta("qc","QC check",(d.qc||[]).join("\n"),5)+'<div class="grid2" style="grid-column:auto">'+'</div>'+ta("pass","Pass",d.pass,3)+ta("fail","Fail",d.fail,3,true)+ta("realTools","Real tools",d.realTools,2)+ta("needs","Needs",d.needs,2)+ta("usesUp","Uses up",d.usesUp,2)+ta("rigTest","Rig test first",d.rigTest,2)+
+  '<label class="f">Reverse possible<select data-e="r.possible"><option value="yes"'+(r.possible!==false?" selected":"")+'>Yes</option><option value="no"'+(r.possible===false?" selected":"")+'>No</option></select></label>'+ta("r.why","If no reverse, why",r.why,2)+ta("r.instruction","Reverse instruction",r.instruction,2,true)+ta("r.steps","Reverse steps",(r.steps||[]).join("\n"),4,true)+ta("r.target","Reverse Target State",(r.target||[]).join("\n"),3)+ta("r.qc","Reverse QC",(r.qc||[]).join("\n"),3)+ta("r.pass","Reverse Pass",r.pass,2)+ta("r.fail","Reverse Fail",r.fail,2)+
+  ta("v.start","Variation: start",v.start,2)+ta("v.doing","Variation: doing it",v.doing,3)+ta("v.end","Variation: end",v.end,2)+ta("v.qcNever","Variation: QC never judges",v.qcNever,2)+ta("v.mistakes","Variation: common mistakes",v.mistakes,2,true)+'</div><div id="d-live"></div>';
+}
+function readEdit(base){
+  var d=JSON.parse(JSON.stringify(base));var g=function(k){var el=document.querySelector('[data-e="'+k+'"]');return el?el.value:""};
+  d.name=g("name").trim();d.bunch=g("bunch").trim();d.instruction=g("instruction").trim();
+  d.initial=arr(g("initial")).map(function(l){var p=l.split("|").map(function(s){return s.trim()});return {item:p[0]||"",how:p[1]||"any way",zones:(p[2]||"").split("/").map(function(z){return z.trim()}).filter(Boolean),role:p[3]||"moves"}});
+  d.steps=arr(g("steps"));d.target=arr(g("target"));d.free=g("free").trim();d.qc=arr(g("qc"));d.pass=g("pass").trim();d.fail=g("fail").trim();d.realTools=g("realTools").trim();d.needs=g("needs").trim();d.usesUp=g("usesUp").trim();d.rigTest=g("rigTest").trim();
+  d.reverse={possible:g("r.possible")!=="no",why:g("r.why").trim(),instruction:g("r.instruction").trim(),steps:arr(g("r.steps")),target:arr(g("r.target")),qc:arr(g("r.qc")),pass:g("r.pass").trim(),fail:g("r.fail").trim()};
+  d.variation={start:g("v.start").trim(),doing:g("v.doing").trim(),end:g("v.end").trim(),qcNever:g("v.qcNever").trim(),mistakes:g("v.mistakes").trim()};
+  return d;
+}
+function liveCheck(){var t=T();if(!t)return;var c=checkDoc(readEdit(t.doc));var bad=c.filter(function(x){return !x.ok&&x.level==="bad"});$("d-live").innerHTML=bad.length?'<div class="banner bad">'+bad.length+' failing: '+esc(bad.map(function(x){return x.name}).join("; "))+'</div>':'<div class="banner ok">All required checks pass.</div>'}
+function saveEdit(){var t=T();var d=readEdit(t.doc);var x=clean(t);x.doc=d;x.name=d.name;x.checks=checkDoc(d);x.rulesVersion=S.rulesVer;save("tasks",t.id,stamp(x)).then(function(){S.editing=false;toast("Saved")})}
+function fixDoc(){var t=T();var fails=(t.checks||checkDoc(t.doc)).filter(function(x){return !x.ok});if(!fails.length){toast("Nothing to fix.");return}var st=streamTo("d-stream");
+  var extra="CURRENT DRAFT\n"+JSON.stringify(t.doc)+"\n\nFIX ONLY THESE CHECKS and keep everything else word for word:\n- "+fails.map(function(f){return f.name+(f.note?" ("+f.note+")":"")}).join("\n- ");
+  writeOne(t,t.doc.name,"",t.doc.code,t.doc.bunch,extra).then(function(){st.done();toast("Fixed. Review it.");renderDoc()}).catch(function(e){aiErr($("d-stream"),e)})}
+
+/* ---------- export / import ---------- */
+function exportList(){var only=$("x-only-ok").checked;return written().filter(function(t){return !only||!checkSummary(t).bad}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)})}
+function iniTxt(d){return (d.initial||[]).map(function(r){return r.item+roleTag(r.role)+" | "+r.how+" | "+zl(r.zones)}).join("\n")}
+function num(a){return (a||[]).map(function(s,i){return (i+1)+". "+s}).join("\n")}
+function vsTxt(d){var v=d.variation||{};return "Start: "+v.start+"\nDoing it: "+v.doing+"\nEnd: "+v.end+"\nZone runs: 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.\nQC never judges: "+v.qcNever+"\nCommon mistakes: "+v.mistakes}
+function deliver(name,data,list,mark){if(!S.downloads){toast("Downloads are not available in this view.");return}S.downloads.save({filename:name,data:data}).then(function(){toast("Saved "+name);if(mark)list.forEach(function(t){if(t.status!=="exported"){var x=clean(t);x.status="exported";save("tasks",t.id,stamp(x))}})}).catch(function(e){toast(e&&e.code==="declined"?"Download cancelled.":"Could not download ("+(e&&e.code)+").")})}
+function dstamp(){return kigaliDay()}
+$("x-xlsx").addEventListener("click",function(){var L=exportList();if(!L.length){toast("No tasks to export.");return}if(!window.XLSX){toast("The Excel library did not load.");return}
+  var H=["Task ID","Bunch","Task Name","Instruction","Initial State (Item | How it starts | Start zones)","Steps","Target State","Free","QC Check","Pass","Fail","Real Tools","Needs","Uses Up","Rig Test First","Reverse ID","Rules Version","Status"];
+  var R=["Reverse ID","Forward ID","Bunch","Reset Name","Reverse Instruction","Steps","Target State","QC Check","Pass","Fail"];
+  var rows=L.map(function(t){var d=t.doc;return [d.id,d.bunch,d.name,d.instruction,iniTxt(d),num(d.steps),(d.target||[]).join("\n"),d.free,num(d.qc),d.pass,d.fail,d.realTools,d.needs,d.usesUp,d.rigTest,d.reverse&&d.reverse.possible===false?"None: "+d.reverse.why:d.id+"R","v"+(t.rulesVersion||""),"Ready"]});
+  var rrows=L.filter(function(t){return !(t.doc.reverse&&t.doc.reverse.possible===false)}).map(function(t){var d=t.doc,r=d.reverse||{};return [d.id+"R",d.id,(d.bunch||"").replace(/^(.*?\d{2})( ·)/,"$1R$2"),"Reset: "+d.name,r.instruction,num(r.steps),(r.target||[]).join("\n"),num(r.qc),r.pass,r.fail]});
+  var vrows=L.map(function(t){return [t.doc.id,t.doc.name,vsTxt(t.doc)]});
+  var wb=XLSX.utils.book_new();
+  function sheet(h,rs,w){var s=XLSX.utils.aoa_to_sheet([h].concat(rs));s["!cols"]=h.map(function(c,i){return {wch:w[i]||40}});return s}
+  XLSX.utils.book_append_sheet(wb,sheet(H,rows,[11,30,36,50,50,60,50,40,50,40,50,40,30,30,40,12,10,8]),"Tasks");
+  XLSX.utils.book_append_sheet(wb,sheet(R,rrows,[12,11,30,40,50,60,50,50,40,50]),"Resets");
+  XLSX.utils.book_append_sheet(wb,sheet(["Task ID","Task","Variation Sheet"],vrows,[11,36,100]),"Variation Sheets");
+  if(S.rules)XLSX.utils.book_append_sheet(wb,sheet(["No.","Section","Rule"],S.rules.rules.map(function(r){return [r.n,r.section,r.text]}),[6,22,120]),"Rules v"+S.rules.version);
+  deliver("Verlet_Tasks_"+dstamp()+".xlsx",new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})]),L,true)});
+$("x-md").addEventListener("click",function(){var L=exportList();if(!L.length){toast("No tasks to export.");return}
+  var md=L.map(function(t){var d=t.doc,r=d.reverse||{};return "# "+d.id+" · "+d.name+"\n\n"+(d.bunch?"*"+d.bunch+"*\n\n":"")+"**Instruction:** "+d.instruction+"\n\n**Initial State**\n\n| Item | How it starts | Start zones |\n|---|---|---|\n"+(d.initial||[]).map(function(x){return "| "+x.item+roleTag(x.role)+" | "+x.how+" | "+zl(x.zones)+" |"}).join("\n")+"\n\n**Steps**\n\n"+num(d.steps)+"\n\n**Target State**\n\n"+(d.target||[]).map(function(s){return "- "+s}).join("\n")+"\n\n**Free:** "+d.free+"\n\n**QC check**\n\n"+num(d.qc)+"\n\n**Pass:** "+d.pass+"\n\n**Fail:** "+d.fail+"\n\n**Notes:** Real tools: "+d.realTools+" · Needs: "+d.needs+" · Uses up: "+d.usesUp+" · Rig test first: "+d.rigTest+"\n\n## "+d.id+"R · Reset\n\n"+(r.possible===false?"No reverse. "+r.why:r.instruction+"\n\n"+num(r.steps)+"\n\n**Target State:** "+(r.target||[]).join(" ")+"\n\n**QC check**\n\n"+num(r.qc)+"\n\n**Pass:** "+r.pass+"\n\n**Fail:** "+r.fail)+"\n\n## Variation Sheet\n\n"+vsTxt(d).split("\n").map(function(s){return "- "+s}).join("\n")}).join("\n\n---\n\n");
+  deliver("Verlet_Task_Cards_"+dstamp()+".md",md,L,false)});
+$("x-json").addEventListener("click",function(){var L=exportList();
+  var week=S.news.filter(function(n){return (n.date||"")>=kigaliDay(new Date(Date.now()-7*864e5))});
+  var payload={format:"verlet-agent-v2",exportedAt:now(),readMe:"Written by the Verlet Task Agent. Codex: edit tasks in place or add new ones in the same shape, keep each 'appId' so the app updates the same task, then save as JSON and load it with 'Import from Codex'. Follow rules exactly.",rules:S.rules,tasks:L.map(function(t){return Object.assign({appId:t.id,status:t.status,rulesVersion:t.rulesVersion},t.doc)}),confirmedNames:S.tasks.filter(function(t){return t.status==="confirmed"}).map(function(t){return {appId:t.id,name:t.name,category:t.category||"",notes:t.summary||""}}),news:week};
+  deliver("verlet-agent-export_"+dstamp()+".json",JSON.stringify(payload,null,2),[],false)});
+$("x-import").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;f.text().then(function(txt){var j;try{j=JSON.parse(txt)}catch(e){toast("That file is not valid JSON.");return}
+  var list=Array.isArray(j)?j:(j.tasks||[]);if(!list.length){toast("No tasks found in the file.");return}
+  var n=0,errs=0;var chain=Promise.resolve();
+  list.forEach(function(x){chain=chain.then(function(){var d=normalize(x);d.code=(x.code||"").toUpperCase();d.id=x.id||"";d.bunch=x.bunch||"";
+    var ex=x.appId&&S.tasks.filter(function(t){return t.id===x.appId})[0]||S.tasks.filter(function(t){return t.doc&&t.doc.id===d.id})[0];
+    if(!/^[A-Z]{3}-\d{3}$/.test(d.id)){d.code=codes()[d.code]?d.code:"HOM";d.id=nextId(d.code)}
+    var t=ex?Object.assign({},ex):{id:uid(),source:"Codex"};t.doc=d;t.name=d.name;t.status="described";t.rulesVersion=x.rulesVersion||S.rulesVer;t.checks=checkDoc(d);t.source=ex?(ex.source||"Write"):"Codex";
+    return save("tasks",t.id,stamp(clean(t),!ex)).then(function(){n++}).catch(function(){errs++})})});
+  chain.then(function(){$("x-info").textContent="Imported "+n+" task"+(n===1?"":"s")+(errs?", "+errs+" failed":"")+". Open them in the list above; the checks ran on each one.";toast("Import done")})})});
+
+/* ---------- TODAY ---------- */
+function renderToday(){
+  var fams=(S.ref.library&&S.ref.library.families)||[];var c={};STAGES.forEach(function(s){c[s[0]]=0});S.tasks.forEach(function(t){c[t.status]=(c[t.status]||0)+1});
+  var notR=S.sourcing.filter(function(s){return s.status!=="Verified"}).length;var w=written();var failing=w.filter(function(t){return checkSummary(t).bad}).length;
+  $("today-tiles").innerHTML=[[w.length,"New-format tasks written"],[failing,"With failing checks"],[c.confirmed,"Confirmed names waiting"],[c.idea,"Ideas waiting"],[fams.length||"–","Families in the old workbook"],[notR,"Items without a verified price"]].map(function(t){return '<div class="tile"><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div>'}).join("");
+  $("nc-pipe").textContent=S.tasks.filter(function(t){return t.status==="idea"||t.status==="confirmed"}).length||"";$("nc-src").textContent=notR||"";
+  var today=kigaliDay();$("today-date").textContent=today;
+  var by={};S.tasks.forEach(function(t){var d=(t.createdAt||"").slice(0,10),e=(t.updatedAt||"").slice(0,10);if(d===today&&t.addedBy){by[t.addedBy]=by[t.addedBy]||{a:0,w:0,e:0};by[t.addedBy].a++;if(t.doc)by[t.addedBy].w++}if(e===today&&t.editedBy&&t.editedBy!==t.addedBy){by[t.editedBy]=by[t.editedBy]||{a:0,w:0,e:0};by[t.editedBy].e++}});
+  var ids=Object.keys(by);var el=$("today-people");
+  if(!ids.length){el.innerHTML='<div class="empty">Nothing added yet today.</div>'}
+  else if(S.user){S.user.profiles(ids).then(function(ps){el.innerHTML='<div class="tbl"><table><thead><tr><th>Person</th><th>Added</th><th>Written</th><th>Edited</th></tr></thead><tbody>'+ids.map(function(id){return '<tr><td>'+esc((ps[id]&&ps[id].name)||"Someone")+(id===S.uid?" (you)":"")+'</td><td class="num">'+by[id].a+'</td><td class="num">'+by[id].w+'</td><td class="num">'+by[id].e+'</td></tr>'}).join("")+'</tbody></table></div>'})}
+  var n=S.news.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"")})[0];
+  $("today-news").innerHTML=n?'<p class="small muted">'+esc(n.date)+' · '+(n.items||[]).length+' stories · '+(n.leads||[]).length+' leads</p><ul class="small">'+(n.items||[]).slice(0,3).map(function(i){return '<li><a href="'+esc(i.url)+'" target="_blank" rel="noopener">'+esc(i.title)+'</a> <span class="muted">· '+esc(i.source)+'</span></li>'}).join("")+'</ul>':'<div class="empty">The first briefing arrives tomorrow before 9:00.</div>';
+  $("nc-news").textContent=n&&n.date===today?"new":"";
+}
+function renderBrief(){var b=S.brief,out=$("brief-out");if(!b||!b.items)return;$("brief-when").textContent="Last run "+day(b.at);
+  out.innerHTML=b.items.map(function(it,i){return '<div class="item"><div class="item-top"><h3>'+esc(it.title)+'</h3><span class="pill '+(it.priority==="High"?"warn":"info")+'">'+esc(it.priority||"")+'</span></div><p>'+esc(it.why)+'</p>'+(it.names&&it.names.length?'<div class="row"><button class="btn small primary" data-bw="'+i+'">Send these '+it.names.length+' names to Write</button><span class="small muted">'+esc(it.names.join(" · "))+'</span></div>':"")+'</div>'}).join("");
+  out.querySelectorAll("[data-bw]").forEach(function(btn){btn.onclick=function(){var it=b.items[+btn.dataset.bw];$("b-names").value=it.names.join("\n");if(it.code&&codes()[it.code])$("b-code").value=it.code;show("write")}})}
+$("run-brief").addEventListener("click",function(){var btn=this;btn.disabled=true;var st=streamTo("brief-out");
+  var n=S.news.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"")})[0];
+  var p="You are the planning agent for the Verlet Robotics teleoperation task library. Today is "+kigaliDay()+".\n\nRULES (summary)\n"+rulesText()+"\n\nBENCH\n"+benchText()+"\n\nOLD WORKBOOK FAMILIES\n"+libText()+"\n\nNEW TASKS WRITTEN\n"+newText()+"\n\nPIPELINE\n"+pipeText()+"\n\nITEMS STILL NEEDED\n"+needText()+"\n\nLATEST NEWS LEADS\n"+(n?JSON.stringify(n.leads||[]):"(none yet)")+"\n\nSuggest 3 to 5 concrete things to do today to grow the library toward 1,200+ varied, real, manipulation-rich tasks (aim for 10 to 20 new names a day). For each, give up to 6 ready-to-write task names when it is a writing move. Use real tools people use. Do not invent facts or prices.\n\nJSON only: {\"items\":[{\"title\":\"short imperative\",\"why\":\"one or two sentences with evidence\",\"priority\":\"High|Medium\",\"code\":\"LIQ|LAB|LID|TOL|CAB|SRT|HOM|CLO|PAK|FIX\",\"names\":[\"task name\"]}]}";
+  ask(p,{json:true,tier:"default",onText:st.on}).then(function(r){st.done();var data={at:now(),items:(r.items||[]).slice(0,5)};S.brief=data;renderBrief();if(S.db)save("briefs","latest",data).catch(function(){})}).catch(function(e){aiErr($("brief-out"),e)}).then(function(){btn.disabled=false})});
+
+/* ---------- IDEAS ---------- */
+function setMode(m){$("m-check").setAttribute("aria-pressed",m==="check");$("m-brain").setAttribute("aria-pressed",m==="brain");$("pane-check").hidden=m!=="check";$("pane-brain").hidden=m!=="brain"}
+$("m-check").onclick=function(){setMode("check")};$("m-brain").onclick=function(){setMode("brain")};
+$("do-check").addEventListener("click",function(){var idea=$("idea-text").value.trim();if(!idea){toast("Write the idea first.");return}var btn=this;btn.disabled=true;$("check-out").innerHTML="";var st=streamTo("check-stream");
+  var p="Check whether this teleoperation task idea can be built at Verlet Robotics before it is written. Be strict and honest.\n\nRULES\n"+rulesText()+"\n\nBENCH\n"+benchText()+"\n\nITEMS\n"+assetText()+"\n\nOLD FAMILIES\n"+libText()+"\n\nNEW TASKS\n"+newText()+"\n\nIDEA: "+idea+"\n\nCheck: real tools people use for this job and whether we have them; gripper fit (two-jaw, 95 mm); which zones each item could start in; camera visibility; at most 5 steps; whether QC can see the result; repeats of old, new or platform tasks; reverse; materials used up. Then give task names worth writing and their variations.\n\nJSON only: {\"verdict\":\"Build it|Build with changes|Do not build\",\"summary\":\"two sentences\",\"checks\":[{\"name\":\"\",\"result\":\"ok|warn|bad\",\"note\":\"\"}],\"realTools\":\"\",\"needs\":[\"\"],\"names\":[{\"name\":\"\",\"code\":\"\"}],\"variations\":[\"\"],\"questions\":[\"\"]}";
+  ask(p,{json:true,tier:"complex",onText:st.on}).then(function(r){st.done();var ico={ok:"✓",warn:"!",bad:"✕"};
+    $("check-out").innerHTML='<div class="card"><div class="item-top"><h3>'+esc(r.verdict)+'</h3><span class="pill '+(r.verdict==="Build it"?"ok":r.verdict==="Do not build"?"bad":"warn")+'">'+esc(r.verdict)+'</span></div><p>'+esc(r.summary)+'</p><ul class="checks">'+(r.checks||[]).map(function(c){return '<li class="'+esc(c.result)+'"><span class="i">'+(ico[c.result]||"·")+'</span><span><b>'+esc(c.name)+'.</b> '+esc(c.note)+'</span></li>'}).join("")+'</ul><p class="small"><b>Real tools:</b> '+esc(r.realTools)+'</p>'+((r.needs||[]).filter(Boolean).length?'<p class="small"><b>Needs:</b> '+esc(r.needs.join(", "))+' <button class="btn small" id="ck-src">Add to Sourcing</button></p>':"")+'<h3>Names</h3><div class="list">'+(r.names||[]).map(function(n,i){return '<div class="item"><div class="item-top"><b>'+esc(n.name)+'</b><div class="row"><span class="pill">'+esc(n.code||"")+'</span><button class="btn small" data-ci="'+i+'">Add to Ideas</button></div></div></div>'}).join("")+'</div><div class="row"><button class="btn primary" id="ck-write">Write all of these now</button></div>'+((r.variations||[]).length?'<h3>Variations</h3><ul class="small">'+r.variations.map(function(v){return '<li>'+esc(v)+'</li>'}).join("")+'</ul>':"")+((r.questions||[]).length?'<h3>Questions</h3><ul class="small">'+r.questions.map(function(v){return '<li>'+esc(v)+'</li>'}).join("")+'</ul>':"")+'</div>';
+    $("check-out").querySelectorAll("[data-ci]").forEach(function(b){b.onclick=function(){var n=r.names[+b.dataset.ci];addTask({name:n.name,category:n.code||"",source:"Idea check: "+idea});b.disabled=true;b.textContent="Added"}});
+    $("ck-write").onclick=function(){$("b-names").value=(r.names||[]).map(function(n){return n.name}).join("\n");show("write")};
+    var cs=$("ck-src");if(cs)cs.onclick=function(){r.needs.filter(Boolean).forEach(function(n){addSourcing({name:n,notes:"From idea: "+idea})});cs.disabled=true};
+  }).catch(function(e){aiErr($("check-stream"),e)}).then(function(){btn.disabled=false})});
+$("do-brain").addEventListener("click",function(){var code=$("brain-code").value,n=Math.max(3,Math.min(25,+$("brain-n").value||20)),focus=$("brain-focus").value.trim(),so=$("brain-stock").value==="yes";var btn=this;btn.disabled=true;$("brain-out").innerHTML="";var st=streamTo("brain-stream");
+  var p="Brainstorm new teleoperation task names for Verlet Robotics: real, manipulation-rich jobs robot-learning customers worldwide would buy, each doable in at most 5 steps, each with many correct ways to do it. Use the real tools people use.\n\nRULES\n"+rulesText()+"\n\nBENCH\n"+benchText()+"\n\nITEMS\n"+assetText()+"\n\nOLD FAMILIES (do not repeat)\n"+libText()+"\n\nNEW TASKS (do not repeat)\n"+newText()+"\n\nPIPELINE (do not repeat)\n"+pipeText()+"\n\nCategory: "+code+" ("+codes()[code]+"). Count: "+n+". "+(so?"Only items in stock.":"Needs items allowed; list them.")+(focus?" Focus: "+focus:"")+"\n\nJSON only: {\"names\":[{\"name\":\"\",\"job\":\"one line\",\"realTools\":\"\",\"needs\":\"\",\"usesUp\":\"\",\"reverse\":\"Yes|No\",\"why\":\"what a robot learns\",\"platformRisk\":\"None|Close: ...\"}]}";
+  ask(p,{json:true,tier:"complex",onText:st.on}).then(function(r){st.done();var L=r.names||[];
+    $("brain-out").innerHTML='<div class="row" style="justify-content:space-between"><b>'+L.length+' names</b><div class="row"><button class="btn" id="br-add">Add ticked to Ideas</button><button class="btn primary" id="br-write">Write ticked now</button></div></div><div class="tbl"><table><thead><tr><th></th><th>Name</th><th>Job</th><th>Real tools</th><th>Needs</th><th>Reverse</th><th>Platform</th></tr></thead><tbody>'+L.map(function(x,i){return '<tr><td><input type="checkbox" checked data-bn="'+i+'" aria-label="Pick"></td><td><b>'+esc(x.name)+'</b><div class="small muted">'+esc(x.why)+'</div></td><td class="small">'+esc(x.job)+'</td><td class="small">'+esc(x.realTools)+'</td><td class="small">'+(x.needs?'<span class="pill warn">'+esc(x.needs)+'</span>':"")+'</td><td>'+esc(x.reverse)+'</td><td class="small">'+(x.platformRisk&&x.platformRisk!=="None"?'<span class="pill bad">'+esc(x.platformRisk)+'</span>':'<span class="pill ok">None</span>')+'</td></tr>'}).join("")+'</tbody></table></div>';
+    function picked(){var o=[];$("brain-out").querySelectorAll("[data-bn]").forEach(function(c){if(c.checked)o.push(L[+c.dataset.bn])});return o}
+    $("br-add").onclick=function(){var p=picked();p.forEach(function(x){addTask({name:x.name,category:code,summary:x.job,needs:x.needs,source:"Brainstorm"})});toast(p.length+" added to Ideas")};
+    $("br-write").onclick=function(){var p=picked();$("b-names").value=p.map(function(x){return x.name+(x.job?" | "+x.job:"")}).join("\n");$("b-code").value=code;show("write")};
+  }).catch(function(e){aiErr($("brain-stream"),e)}).then(function(){btn.disabled=false})});
+
+/* ---------- PIPELINE ---------- */
+function addTask(t){if(!S.db){toast("Cannot save.");return}var id=uid();var d=stamp(Object.assign({status:"idea"},t),true);S.tasks.push(Object.assign({id:id},d));renderPipeline();return save("tasks",id,d)}
+function setStatus(t,st){var x=clean(t);x.status=st;return save("tasks",t.id,stamp(x))}
+function renderPipeline(){var h="";STAGES.forEach(function(s){var L=S.tasks.filter(function(t){return t.status===s[0]}).sort(function(a,b){return (b.updatedAt||"").localeCompare(a.updatedAt||"")});
+  h+='<div class="col"><div class="col-h"><span>'+s[1]+'</span><span class="pill">'+L.length+'</span></div>'+(L.length?"":'<div class="small muted" style="padding:6px">Nothing here.</div>');
+  L.forEach(function(t){h+='<div class="tcard"><div class="nm">'+esc(t.doc?t.doc.id+" · "+t.doc.name:t.name)+'</div><div class="row">'+(t.category?'<span class="pill">'+esc(t.category)+'</span>':"")+(t.needs?'<span class="pill warn">Needs: '+esc(t.needs)+'</span>':"")+'</div><div class="acts">'+
+    (s[0]==="idea"?'<button class="btn small primary" data-a="confirm" data-id="'+t.id+'">Confirm</button>':"")+(s[0]==="confirmed"?'<button class="btn small primary" data-a="write" data-id="'+t.id+'">Write</button><button class="btn small" data-a="back" data-id="'+t.id+'">Back</button>':"")+(t.doc?'<button class="btn small" data-a="open" data-id="'+t.id+'">Open</button>':"")+(s[0]==="described"?'<button class="btn small" data-a="exported" data-id="'+t.id+'">Mark exported</button>':"")+'<button class="btn small" data-a="del" data-id="'+t.id+'" aria-label="Delete">✕</button></div></div>'});h+='</div>'});
+  $("board").innerHTML=h;
+  $("board").querySelectorAll("[data-a]").forEach(function(b){b.onclick=function(){var t=S.tasks.filter(function(x){return x.id===b.dataset.id})[0];if(!t)return;var a=b.dataset.a;
+    if(a==="confirm")setStatus(t,"confirmed");else if(a==="back")setStatus(t,"idea");else if(a==="exported")setStatus(t,"exported");else if(a==="open")openTask(t.id);
+    else if(a==="write"){var st=b;st.disabled=true;st.innerHTML='<span class="spin"></span>';writeOne(t,t.name,t.summary||"",codes()[t.category]?t.category:"",null).then(function(){toast("Written: open it in Write.");openTask(t.id)}).catch(function(e){toast((e&&e.message)||"Failed");st.disabled=false;st.textContent="Write"})}
+    else if(a==="del"){if(b.dataset.sure)del("tasks",t.id);else{b.dataset.sure="1";b.textContent="Delete?";setTimeout(function(){b.dataset.sure="";b.textContent="✕"},3000)}}}})}
+$("add-manual").onclick=function(){openForm("Add a task name",[["name","Task name","text",""],["category","Category code (e.g. HOM)","text",""],["summary","Notes","area",""]],function(v){if(!v.name){toast("A name is needed.");return}v.category=(v.category||"").toUpperCase();addTask(v)})};
+
+/* ---------- NEWS ---------- */
+function renderNews(){var L=S.news.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"")});var el=$("news-list");
+  if(!L.length){el.innerHTML='<div class="empty">No briefing yet. The first one arrives tomorrow morning before 9:00 Kigali time, and a notification comes with it.</div>';return}
+  el.innerHTML=L.map(function(n,ni){return '<div class="card"><div class="item-top"><h3>'+esc(n.date)+'</h3><span class="pill">'+(n.items||[]).length+' stories · '+(n.leads||[]).length+' leads</span></div><div class="list">'+(n.items||[]).map(function(i){return '<div class="item"><div class="item-top"><a href="'+esc(i.url)+'" target="_blank" rel="noopener"><b>'+esc(i.title)+'</b></a><span class="small muted">'+esc(i.source)+(i.published?" · "+esc(i.published):"")+'</span></div><p class="small">'+esc(i.summary)+'</p><p class="small"><b>Why it matters:</b> '+esc(i.whyItMatters)+'</p></div>'}).join("")+'</div>'+((n.leads||[]).length?'<h3>Task leads</h3><div class="tbl"><table><thead><tr><th></th><th>Lead</th><th>Items</th><th>Needs</th><th>Reverse</th></tr></thead><tbody>'+n.leads.map(function(l,li){return '<tr><td><input type="checkbox" checked data-nl="'+ni+'-'+li+'" aria-label="Pick"></td><td><b>'+esc(l.name)+'</b><div class="small muted">'+esc(l.category||"")+' · from: '+esc(l.inspiredBy||"")+'</div></td><td class="small">'+esc(l.items)+'</td><td class="small">'+esc(l.needs)+'</td><td>'+esc(String(l.reverse))+'</td></tr>'}).join("")+'</tbody></table></div><div class="row"><button class="btn" data-nadd="'+ni+'">Add ticked to Ideas</button><button class="btn primary" data-nw="'+ni+'">Write ticked now</button></div>':"")+'</div>'}).join("");
+  function picked(ni){var o=[];el.querySelectorAll('[data-nl^="'+ni+'-"]').forEach(function(c){if(c.checked)o.push(L[ni].leads[+c.dataset.nl.split("-")[1]])});return o}
+  el.querySelectorAll("[data-nadd]").forEach(function(b){b.onclick=function(){var p=picked(+b.dataset.nadd);p.forEach(function(l){addTask({name:l.name,category:"",summary:l.items,needs:l.needs,source:"News "+L[+b.dataset.nadd].date})});toast(p.length+" added")}});
+  el.querySelectorAll("[data-nw]").forEach(function(b){b.onclick=function(){var p=picked(+b.dataset.nw);$("b-names").value=p.map(function(l){return l.name+(l.items?" | items: "+l.items:"")}).join("\n");show("write")}})}
+
+/* ---------- SOURCING ---------- */
+var SRC_ST=["all","Not researched","Estimate only","Verified"];
+function addSourcing(o){var id=uid();var d=Object.assign({name:"",assetId:"",tasks:[],qty:null,unit:"pcs",spec:"",size:"To confirm",priceLow:null,priceHigh:null,currency:"",priceKind:"",shop:"",place:"",country:"",link:"",checked:"",status:"Not researched",notes:""},o);return save("sourcing",id,stamp(d,true)).then(function(){toast("Added to Sourcing: "+d.name)})}
+function renderSourcing(){var all=S.sourcing,c={};SRC_ST.forEach(function(s){c[s]=0});all.forEach(function(s){c[s.status]=(c[s.status]||0)+1});c.all=all.length;var est=0;all.forEach(function(s){if(s.priceHigh&&s.qty&&s.currency==="USD")est+=s.priceHigh*s.qty});
+  $("src-tiles").innerHTML=[[all.length,"Items on the list"],[c["Verified"],"Verified prices"],[c["Not researched"],"Not researched yet"],[est?"$"+est.toFixed(0):"–","Estimated total (USD, estimates only)"]].map(function(t){return '<div class="tile"><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div>'}).join("");
+  $("src-filter").innerHTML=SRC_ST.map(function(s){return '<button aria-pressed="'+(S.srcFilter===s)+'" data-f="'+esc(s)+'">'+esc(s==="all"?"All":s)+' ('+(c[s]||0)+')</button>'}).join("");
+  $("src-filter").querySelectorAll("button").forEach(function(b){b.onclick=function(){S.srcFilter=b.dataset.f;renderSourcing()}});
+  var L=all.filter(function(s){return S.srcFilter==="all"||s.status===S.srcFilter}).sort(function(a,b){return (b.tasks||[]).length-(a.tasks||[]).length||a.name.localeCompare(b.name)});
+  if(!L.length){$("src-list").innerHTML='<div class="empty">Nothing here yet.</div>';return}
+  $("src-list").innerHTML='<div class="tbl"><table><thead><tr><th>Item</th><th>For 4 rigs</th><th>Size and spec</th><th>Price</th><th>Where</th><th>Status</th><th></th></tr></thead><tbody>'+L.map(function(s){var price=s.priceLow||s.priceHigh?((s.priceLow&&s.priceHigh&&s.priceLow!==s.priceHigh?s.priceLow+"–"+s.priceHigh:(s.priceHigh||s.priceLow))+" "+(s.currency||"")):"–";var where=[s.shop,s.place,s.country].filter(Boolean).join(", ")||"–";
+    return '<tr><td><b>'+esc(s.name)+'</b><div class="small muted">'+esc(s.assetId||"")+((s.tasks||[]).length?" · unlocks "+s.tasks.length+": "+esc(s.tasks.join(", ")):"")+'</div></td><td class="num">'+esc(s.qty!=null?s.qty+" "+(s.unit||""):"–")+'</td><td class="small">'+esc(s.size||"")+(s.spec?'<div class="muted">'+esc(s.spec.slice(0,140))+(s.spec.length>140?"…":"")+'</div>':"")+'</td><td class="num">'+esc(price)+(s.priceKind?'<div class="small muted">'+esc(s.priceKind)+'</div>':"")+'</td><td class="small">'+esc(where)+(s.link?'<div><a href="'+esc(s.link)+'" target="_blank" rel="noopener">Link</a>'+(s.checked?" · "+esc(day(s.checked)):"")+'</div>':"")+'</td><td><span class="pill '+(s.status==="Verified"?"ok":s.status==="Estimate only"?"warn":"")+'">'+esc(s.status)+'</span></td><td><div class="row"><button class="btn small" data-s="rq" data-id="'+s.id+'">Research</button><button class="btn small" data-s="edit" data-id="'+s.id+'">Edit</button></div></td></tr>'}).join("")+'</tbody></table></div>';
+  $("src-list").querySelectorAll("[data-s]").forEach(function(b){b.onclick=function(){var s=S.sourcing.filter(function(x){return x.id===b.dataset.id})[0];if(!s)return;if(b.dataset.s==="edit")editSourcing(s);else addResearch("Find "+s.name+(s.spec?" ("+s.spec+")":"")+": qty "+(s.qty||"?")+" for 4 rigs. Kigali shops first (name, area, price in RWF), then Nairobi, then online with delivery to Rwanda. Give price, size, link and date.","item",s.id)}})}
+function editSourcing(s){openForm("Edit "+s.name,[["name","Item","text",s.name],["qty","Quantity for 4 rigs","number",s.qty],["unit","Unit","text",s.unit],["size","Size","text",s.size],["spec","Specification","area",s.spec],["priceLow","Price low","number",s.priceLow],["priceHigh","Price high","number",s.priceHigh],["currency","Currency (RWF, KES, USD)","text",s.currency],["priceKind","Price type","text",s.priceKind],["shop","Shop or seller","text",s.shop],["place","Area or city","text",s.place],["country","Country","text",s.country],["link","Link","text",s.link],["checked","Date checked (YYYY-MM-DD)","text",s.checked],["status","Status (Not researched, Estimate only, Verified)","text",s.status],["notes","Notes","area",s.notes]],function(v){var d=clean(s);Object.assign(d,v);["qty","priceLow","priceHigh"].forEach(function(k){d[k]=v[k]===""||v[k]==null?null:+v[k]});if(d.status==="Verified"&&(!d.link||!d.checked)){toast("Verified needs a link and a date. Saved as Estimate only.");d.status="Estimate only"}save("sourcing",s.id,stamp(d)).then(function(){toast("Saved")})})}
+$("src-add").onclick=function(){openForm("Add an item to buy",[["name","Item","text",""],["qty","Quantity for 4 rigs","number",""],["spec","Specification","area",""],["notes","Why it is needed","area",""]],function(v){if(!v.name){toast("A name is needed.");return}addSourcing({name:v.name,qty:v.qty?+v.qty:null,spec:v.spec,notes:v.notes})})};
+function addResearch(q,kind,ref){return save("research",uid(),stamp({question:q,kind:kind||"general",ref:ref||"",status:"waiting",answer:"",sources:[]},true)).then(function(){toast("Sent to the research queue")})}
+function renderResearch(){var L=S.research.slice().sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"")});if(!L.length){$("rq-list").innerHTML='<div class="empty">No questions yet.</div>';return}
+  $("rq-list").innerHTML=L.map(function(r){return '<div class="item"><div class="item-top"><b>'+esc(r.question)+'</b><div class="row"><span class="pill '+(r.status==="done"?"ok":"warn")+'">'+(r.status==="done"?"Answered "+esc(day(r.answeredAt)):"Waiting")+'</span><button class="btn small" data-rq="'+r.id+'" aria-label="Delete">✕</button></div></div>'+(r.answer?'<p class="small" style="white-space:pre-wrap">'+esc(r.answer)+'</p>':"")+((r.sources||[]).length?'<div class="small">Sources: '+r.sources.map(function(u,i){return '<a href="'+esc(u.url||u)+'" target="_blank" rel="noopener">'+esc(u.title||("["+(i+1)+"]"))+'</a>'}).join(" · ")+'</div>':"")+'</div>'}).join("");
+  $("rq-list").querySelectorAll("[data-rq]").forEach(function(b){b.onclick=function(){if(b.dataset.sure)del("research",b.dataset.rq);else{b.dataset.sure="1";b.textContent="Delete?"}}})}
+$("rq-add").onclick=function(){openForm("Research question",[["q","What should Claude find out?","area",""]],function(v){if(v.q)addResearch(v.q,"general")})};
+
+/* ---------- RULES ---------- */
+function renderRules(){var r=S.rules;
+  if(!r){$("r-head").innerHTML='<div class="empty">The rules have not loaded yet.</div>';$("r-list").innerHTML="";return}
+  $("r-head").innerHTML='<div class="item-top"><div><h3>'+esc(r.group)+'</h3><p class="small muted">Version '+esc(r.version)+' · updated '+esc(r.updatedAt)+' · '+r.rules.length+' rules · codes: '+esc(Object.keys(codes()).join(", "))+'</p></div><span class="pill info">Used by every new description</span></div>';
+  var sec="",h="";r.rules.slice().sort(function(a,b){return a.n-b.n}).forEach(function(x){if(x.section!==sec){if(sec)h+='</div></div>';sec=x.section;h+='<div class="card"><h3>'+esc(sec)+'</h3><div class="list">'}h+='<div class="item"><div class="item-top"><span><b class="mono">'+x.n+'.</b> '+esc(x.text)+'</span><div class="row"><button class="btn small" data-re="'+x.n+'">Edit</button><button class="btn small" data-rd="'+x.n+'" aria-label="Delete rule">✕</button></div></div></div>'});if(sec)h+='</div></div>';
+  $("r-list").innerHTML=h;
+  $("r-list").querySelectorAll("[data-re]").forEach(function(b){b.onclick=function(){var x=r.rules.filter(function(y){return y.n===+b.dataset.re})[0];openForm("Edit rule "+x.n,[["section","Section","text",x.section],["text","Rule","area",x.text]],function(v){proposeRules(r.rules.map(function(y){return y.n===x.n?{n:x.n,section:v.section||x.section,text:v.text||x.text}:y}),"Rule "+x.n+" changed")})}});
+  $("r-list").querySelectorAll("[data-rd]").forEach(function(b){b.onclick=function(){if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Delete?";return}proposeRules(r.rules.filter(function(y){return y.n!==+b.dataset.rd}),"Rule "+b.dataset.rd+" removed")}})}
+$("r-add").onclick=function(){if(!S.rules)return;var max=Math.max.apply(null,S.rules.rules.map(function(x){return x.n}));openForm("Add a rule",[["section","Section","text","Words"],["text","Rule","area",""]],function(v){if(!v.text)return;proposeRules(S.rules.rules.concat([{n:max+1,section:v.section||"Other",text:v.text}]),"Rule "+(max+1)+" added")})};
+function conflictPrompt(rules){return "These are the in-house rules Verlet uses to write teleoperation task descriptions. Find any two rules that contradict each other, or a rule that cannot be followed together with another. Do not report style preferences. JSON only: {\"conflicts\":[{\"rules\":[1,2],\"problem\":\"\",\"fix\":\"\"}]}\n\n"+rules.slice().sort(function(a,b){return a.n-b.n}).map(function(x){return x.n+". ["+x.section+"] "+x.text}).join("\n")}
+function showConflicts(c,onSaveAnyway){var el=$("r-conf");if(!c.length){el.innerHTML='<div class="banner ok">No conflicts found between the rules.</div>';return}
+  el.innerHTML='<div class="card"><h3>Conflicts found</h3><div class="list">'+c.map(function(x){return '<div class="item"><b>Rules '+esc((x.rules||[]).join(" and "))+'</b><p class="small">'+esc(x.problem)+'</p><p class="small"><b>Fix:</b> '+esc(x.fix)+'</p></div>'}).join("")+'</div>'+(onSaveAnyway?'<div class="row"><button class="btn" id="r-anyway">Save anyway</button><span class="small muted">Not recommended. Fix the clash first.</span></div>':"")+'</div>';
+  if(onSaveAnyway)$("r-anyway").onclick=onSaveAnyway}
+function bump(v){var p=String(v||"1.0").split(".");return p[0]+"."+((+p[1]||0)+1)}
+function proposeRules(newRules,what){var el=$("r-conf");el.innerHTML='<div class="banner"><span class="spin"></span> Checking the change against every other rule…</div>';
+  function commit(){var d=clean(S.rules);d.rules=newRules;d.version=bump(d.version);d.updatedAt=kigaliDay();d.changeLog=(d.changeLog||[]).concat([{at:now(),what:what,by:S.uid||""}]);save("rules","inhouse",d).then(function(){el.innerHTML='<div class="banner ok">Saved as version '+esc(d.version)+'. Tasks written under older versions are flagged in Write.</div>'})}
+  if(!S.sample){commit();return}
+  ask(conflictPrompt(newRules),{json:true,tier:"complex"}).then(function(r){var c=r.conflicts||[];if(!c.length)commit();else showConflicts(c,commit)}).catch(function(e){aiErr(el,e)})}
+$("r-check").onclick=function(){if(!S.rules)return;var el=$("r-conf");el.innerHTML='<div class="banner"><span class="spin"></span> Checking all rules…</div>';ask(conflictPrompt(S.rules.rules),{json:true,tier:"complex"}).then(function(r){showConflicts(r.conflicts||[])}).catch(function(e){aiErr(el,e)})};
+
+/* ---------- LIBRARY ---------- */
+document.querySelectorAll("[data-lib]").forEach(function(b){b.onclick=function(){S.libTab=b.dataset.lib;document.querySelectorAll("[data-lib]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderLibrary()}});
+$("lib-q").addEventListener("input",renderLibrary);$("lib-g").addEventListener("change",renderLibrary);
+function renderLibrary(){var q=$("lib-q").value.trim().toLowerCase(),g=$("lib-g").value,tab=S.libTab,out=$("lib-out");$("lib-bar").style.display=tab==="bench"?"none":"flex";$("lib-g").style.display=tab==="notes"?"none":"";
+  if(tab==="fam"){var F0=(S.ref.library&&S.ref.library.families)||[];var gs={};F0.forEach(function(f){gs[f.group]=1});$("lib-g").innerHTML='<option value="">All groups</option>'+Object.keys(gs).sort().map(function(x){return '<option'+(x===g?" selected":"")+'>'+esc(x)+'</option>'}).join("");
+    var F=F0.filter(function(f){return (!g||f.group===g)&&(!q||(f.id+" "+f.family+" "+f.task+" "+f.items).toLowerCase().indexOf(q)>=0)});$("lib-n").textContent=F.length+" families (old workbook)";
+    out.innerHTML=F.length?'<div class="tbl"><table><thead><tr><th>ID</th><th>Family and task</th><th>Main items</th><th>Needs</th><th>Status</th></tr></thead><tbody>'+F.map(function(f){return '<tr><td class="mono">'+esc(f.id)+'</td><td><b>'+esc(f.family)+'</b><div class="small muted">'+esc(f.task)+'</div></td><td class="small">'+esc(f.items)+'</td><td class="small">'+(f.needs&&f.needs!=="None"?'<span class="pill warn">'+esc(f.needs)+'</span>':"")+'</td><td><span class="pill '+(f.status==="Ready"?"ok":"warn")+'">'+esc(f.status)+'</span></td></tr>'}).join("")+'</tbody></table></div>':'<div class="empty">No match.</div>'}
+  else if(tab==="items"){$("lib-g").innerHTML='<option value="">All stock</option><option'+(g==="In stock"?" selected":"")+'>In stock</option><option'+(g==="Needs"?" selected":"")+'>Needs</option>';var A=((S.ref.assets&&S.ref.assets.items)||[]).filter(function(a){return (!g||a.stock===g)&&(!q||(a.id+" "+a.name+" "+a.looks+" "+a.group).toLowerCase().indexOf(q)>=0)});$("lib-n").textContent=A.length+" items";
+    out.innerHTML=A.length?'<div class="tbl"><table><thead><tr><th>ID</th><th>Item</th><th>Group</th><th>Size</th><th>Gripper fit</th><th>Stock</th></tr></thead><tbody>'+A.map(function(a){return '<tr><td class="mono">'+esc(a.id)+'</td><td><b>'+esc(a.name)+'</b><div class="small muted">'+esc(a.looks)+'</div></td><td class="small">'+esc(a.group)+'</td><td class="small">'+esc(a.size)+'</td><td class="small">'+esc(a.fit)+'</td><td><span class="pill '+(a.stock==="In stock"?"ok":"warn")+'">'+esc(a.stock)+'</span></td></tr>'}).join("")+'</tbody></table></div>':'<div class="empty">No match.</div>'}
+  else if(tab==="bench"){var b=S.ref.bench||{};out.innerHTML='<div class="grid2"><div class="card"><h3>Bench</h3><p><b>Location:</b> '+esc(b.location)+'</p><p><b>Rigs:</b> '+esc(b.rigs)+'</p><p><b>Robot:</b> two-jaw grippers, 95 mm opening.</p><p><b>Zones (no tape lines):</b></p><ol>'+ZN.map(function(z){return '<li>'+esc(ZFULL[z])+'</li>'}).join("")+'</ol></div><div class="card"><h3>Platform (already done there)</h3><p class="small">'+esc(b.platformKnown)+'</p><p class="small muted">'+esc(b.platformAsOf)+'</p></div></div>'}
+  else{var N=S.notes.filter(function(n){return !q||(n.text||"").toLowerCase().indexOf(q)>=0}).sort(function(a,b){return (b.createdAt||b.at||"").localeCompare(a.createdAt||a.at||"")});$("lib-n").textContent=N.length+" lessons";
+    out.innerHTML='<div class="card"><div class="item-top"><div><h3>Lessons from the rigs</h3><p class="small muted">Tools that do not fit a zone, gripper problems, wording that confused operators or QC. The writer reads these every time.</p></div><button class="btn primary" id="note-add">Add a lesson</button></div><div class="list">'+(N.length?N.map(function(n){return '<div class="item"><div class="item-top"><span>'+esc(n.text)+'</span><span class="small muted">'+esc(day(n.createdAt||n.at))+'</span></div></div>'}).join(""):'<div class="empty">No lessons yet.</div>')+'</div></div>';
+    $("note-add").onclick=function(){openForm("Add a lesson",[["text","What happened, and what to do next time","area",""]],function(v){if(v.text)save("notes",uid(),stamp({text:v.text},true))})}}}
+
+/* ---------- dialog ---------- */
+function openForm(title,fields,onOk){var f=$("dlg-form");
+  f.innerHTML='<h3>'+esc(title)+'</h3>'+fields.map(function(x,i){var id="ff-"+i;return '<label class="f" for="'+id+'">'+esc(x[1])+(x[2]==="area"?'<textarea id="'+id+'" name="'+x[0]+'" rows="4">'+esc(x[3]==null?"":x[3])+'</textarea>':'<input id="'+id+'" name="'+x[0]+'" type="'+(x[2]==="number"?"number":"text")+'" step="any" value="'+esc(x[3]==null?"":x[3])+'">')+'</label>'}).join("")+'<div class="row" style="justify-content:flex-end"><button class="btn" type="button" id="dlg-cancel">Cancel</button><button class="btn primary" type="submit">Save</button></div>';
+  var d=$("dlg");$("dlg-cancel").onclick=function(){d.close()};f.onsubmit=function(e){e.preventDefault();var v={};fields.forEach(function(x){var el=f.elements[x[0]];v[x[0]]=el?el.value.trim():""});d.close();onOk(v)};if(d.showModal)d.showModal();else d.setAttribute("open","");var first=f.querySelector("input,textarea");if(first)first.focus()}
+
+function renderAll(){fillCodeSelects();renderToday();renderWriteList();if(S.openId&&!S.editing)renderDoc();renderPipeline();renderBrief();renderNews();renderSourcing();renderResearch();renderRules();renderLibrary()}
+window.__verlet={checkDoc:checkDoc,normalize:normalize,S:S};
+show(location.hash.slice(1)||"today");
+boot();
+})();
+</script>
+</body>
+</html>

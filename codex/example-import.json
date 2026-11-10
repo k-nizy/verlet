@@ -1,0 +1,84 @@
+{
+  "format": "verlet-agent-v2",
+  "tasks": [
+    {
+      "code": "HOM",
+      "name": "Staple three sheets into one document and file it",
+      "instruction": "Gather three paper sheets into one pile, staple them once at a corner with the desktop stapler, and put the stapled document into the document tray.",
+      "initial": [
+        {
+          "item": "3 A4 paper sheets",
+          "how": "loose, not stapled",
+          "zones": [
+            "Supply",
+            "Staging",
+            "Finished Goods"
+          ],
+          "role": "moves"
+        },
+        {
+          "item": "Desktop stapler",
+          "how": "loaded with staples",
+          "zones": [
+            "Tool",
+            "Staging"
+          ],
+          "role": "moves"
+        },
+        {
+          "item": "Document tray",
+          "how": "empty",
+          "zones": [
+            "Operation",
+            "Finished Goods"
+          ],
+          "role": "stays"
+        }
+      ],
+      "steps": [
+        "Gather the three paper sheets into one pile, until their edges meet on all four sides.",
+        "Put one corner of the pile into the mouth of the desktop stapler, and press the stapler until one staple goes through all three sheets. This comes after step 1.",
+        "Take the stapled document out of the stapler, and place the stapler in a zone different from where it started.",
+        "Put the stapled document into the document tray, until it is fully inside."
+      ],
+      "target": [
+        "3 paper sheets: one document, held together by one staple at a corner, fully inside the document tray.",
+        "Desktop stapler: closed, in a zone different from where it started.",
+        "Document tray: where it started."
+      ],
+      "free": "Which corner is stapled, which side of the document faces up, the order the sheets are gathered, how the stapler is pressed.",
+      "qc": [
+        "The three sheets come together into one pile with their edges meeting.",
+        "One staple goes through all three sheets at a corner.",
+        "The stapler ends in a new zone.",
+        "The stapled document is fully inside the tray."
+      ],
+      "pass": "Target State seen, nothing fell off the bench.",
+      "fail": "A sheet is not held by the staple; no staple, or a staple outside the paper; the document is outside the tray or over its edge; the stapler is in its start zone; the tray moved; an item fell off the bench.",
+      "realTools": "A desktop stapler and plain A4 sheets, as used in every office. Not improvised. Not in the Asset Pool.",
+      "needs": "Desktop stapler; staples; A4 paper sheets",
+      "usesUp": "3 A4 sheets and 1 staple per episode.",
+      "rigTest": "The gripper can pick a single sheet off the bench, and can press the stapler hard enough for one staple to go through three sheets.",
+      "reverse": {
+        "possible": false,
+        "why": "A staple cannot be taken out with the items on the bench. With a staple remover (Needs) the reset would be possible; until then each episode uses new sheets.",
+        "instruction": "",
+        "steps": [],
+        "target": [],
+        "qc": [],
+        "pass": "",
+        "fail": ""
+      },
+      "variation": {
+        "start": "Sheets loose in different zones, overlapping or apart, any side up; the stapler open or closed, any way round.",
+        "doing": "Slide the sheets together, lift one onto another, or tap the edges on the bench until they meet; bring the pile to the stapler or the stapler to the pile; press with one gripper or both.",
+        "end": "Any corner stapled, any side up, fully inside the tray.",
+        "qcNever": "Grip, the order the sheets are picked up, which corner, which side faces up.",
+        "mistakes": "A sheet missed by the staple; edges not meeting before stapling; the document left on the tray edge."
+      },
+      "platformRisk": "None",
+      "id": "HOM-001",
+      "bunch": "Home, desk and books 01 \u00b7 Staple and file documents"
+    }
+  ]
+}

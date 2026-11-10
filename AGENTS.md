@@ -2,15 +2,15 @@
 
 ## Before anything
 1. Read `rules/how-we-work.md`.
-2. Read `rules/task-description-rules.md` before writing or checking any task.
-3. Read the desk file in `desks/` for the job you are asked to do.
+2. For any NEW task: read `rules/inhouse-rules-v1.md`. These are the Verlet In-House Rules. They replace the old fixed-zone rules for new work.
+3. For the OLD workbook only (`D:\master task\verlet-real-tasks`): that project keeps its own rules in its `docs/02` and `docs/10`. Do not mix the two rule sets.
+4. To exchange work with the Verlet Task Agent app, follow `codex/HOW-CODEX-WORKS-WITH-THE-APP.md`.
 
 ## Always
 - Tell the plan first. Build only after it is confirmed.
 - Never create a file without saying what it is and why, and getting a yes.
-- New files go into `drafts/`. Never change files in `workbooks/` or `knowledge/` unless asked.
-- No guessing. Every fact (price, company, platform task, stock count) says where it came from.
-  If you do not know, say so.
+- New drafts go into `drafts/` or `codex/outbox/`. Never change files in `workbooks/` or `knowledge/` unless asked.
+- No guessing. Every fact (price, company, platform task, stock count) says where it came from. If you do not know, say so.
 - Before asking a question, re-read this folder and the conversation. Ask only what is not answered.
 - Add one line to `log/CHANGELOG.md` for every change.
 
