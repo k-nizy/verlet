@@ -1,4 +1,4 @@
-# Verlet In-House Rules, version 1.1 (2026-11-10)
+# Verlet In-House Rules, version 1.2 (2026-11-10)
 
 These rules apply to every NEW task written for Verlet in-house. The old workbook (verlet-real-tasks) keeps its own older rules in its docs/02 and docs/10; do not mix the two.
 
@@ -21,8 +21,8 @@ Codes: LIQ = Liquids, LAB = Tubes, racks and boxes, LID = Lids, latches and case
 13. [Steps] Steps never say how to grab, which gripper to use, or at what angle to work.
 14. [Steps] Each item's full name is used once in a step. After that, "it" is allowed when it can only mean one item.
 15. [Steps] No step repeats what another step already says. No redundancy and no repeated words across the description.
-16. [Target State] One line for every item that moved or stayed: where it ends (zone or inside which item) and the result the job created on it (closed, filled, stapled, buttoned). A pose is written only when the job needs one, such as a cup that holds liquid standing upright.
-17. [Target State] When more than one ending is correct, every correct ending is listed, joined with "or".
+16. [Target State] The Target State is a table with three columns: Item, How it ends, End zones. Every item from the Initial State has a row. "How it ends" gives the result the job created on it (closed, filled, stapled, buttoned), and a pose only when the job needs one, such as a cup holding liquid standing upright.
+17. [Target State] When more than one ending is correct, every correct ending is listed in "How it ends", joined with "or".
 18. [Target State] Everything the operator may choose freely is written in a Free line (for example "any order", "spines facing any side", "which corner"), so QC knows not to judge it.
 19. [QC check] One QC line per step, in the same order, checking only the result of that step.
 20. [QC check] QC never fails a video for the method, the grip, the angle, the start pose, the order of steps that are not marked "before", or anything in the Free line.
@@ -47,7 +47,7 @@ Codes: LIQ = Liquids, LAB = Tubes, racks and boxes, LID = Lids, latches and case
 39. [Reality] QC checks only that the job was really done (stapled, closed, filled) and that nothing fell or spilled. How the operator did it never matters.
 40. [Order] The order of steps is free, except where the job itself forces it (paper is gathered before it is stapled; a tube is filled before it is closed). Those steps say "before" or "after".
 41. [Materials] A task that uses up material (paper, staples, tape, tissue, water) says in its Notes what is used up and how much per episode. Material not in stock is listed under Needs.
-42. [Reverse] The reset starts from the end of the forward episode and ends in a valid start: every moved item back in one of its listed start zones, not the zone it just ended in. If the job cannot be undone with real tools, the Notes say "No reverse" and why.
+42. [Reverse] The reset starts from the end of the forward episode and ends in a valid start: every moved item back in one of its listed start zones, not the zone it just ended in. If the job cannot be undone with real tools, or the forward task already ends in a valid start, no reset is written and the Notes say why.
 43. [Platform] A job already on the Verlet platform is not written again as a forward task; it may appear only as a reverse.
 44. [Bench] The bench has no tape lines. Operators and QC know the six zones by name. A zone is always written with its number: Supply (1), Tool (2), Used Equipment (3), Staging (4), Operation (5), Finished Goods (6).
 45. [Steps] Write the steps first. The instruction, Initial State, Target State, QC check, Pass and Fail are traced from the steps. If any two of them disagree, the task is fixed before it is saved.
@@ -66,9 +66,16 @@ Codes: LIQ = Liquids, LAB = Tubes, racks and boxes, LID = Lids, latches and case
 58. [Variation Sheets] Every Variation Sheet ends with the standard line: "If something goes wrong: if an item is dropped, stop, set up a valid start again and record again." Tasks do not repeat it.
 59. [Words] Descriptions never contain reject codes, QC upload fields, camera instructions, the owner's name or a bunch number.
 60. [Checking] A task is Ready only when every check passes. After every 10 tasks the text is re-read from start to end.
+61. [Target State] End zones follow what each zone is for: a finished product ends in Staging (4), Operation (5) or Finished Goods (6); a tool after use ends in Tool (2) or Used Equipment (3); a part taken off or a leftover (cap, lid, peeled tape, used tissue) ends in Used Equipment (3) or Staging (4).
+62. [Target State] A moved item may end in any of its listed end zones except the zone it started in. An item put into another item ends "inside the <item>". An item that stays ends "where it started".
+63. [Target State] Only possible zones are listed, for start and end: zones the arms reach comfortably for that item, where it fits, and where the camera shows the result.
+64. [Reverse] Every reset is its own task row with its own ID (LIQ-001R): its own instruction, Initial State (the forward Target State, word for word), Steps, Target State, Free line, QC check, Pass, Fail and Variation Sheet.
+65. [Variation Sheets] A Variation Sheet lists at least 3 ways the start can vary, 6 real ways to do the job, 3 ways the end can vary, 3 real-world scenarios where people do this job, what QC never judges, and at least 3 common mistakes. Every way listed is real and possible with two-jaw 95 mm grippers.
+66. [Checking] A task is finished only when every check passes. Failing checks are fixed and checked again; a task that still fails is marked Needs review and is not exported.
 
 ## Change log
 - 2026-11-10: Version 1.0 agreed in chat
 - 2026-11-10: Version 1.1: merged the old rules that still fit (rules 44-60 added; 21, 27, 31, 33, 34 updated); dropped old fixed-zone, fixed-order and fixed-method rules
+- 2026-11-10: Version 1.2: Target State as a table with end zones (16, 17, 61-63); resets as their own task rows (64); fuller Variation Sheets (65); finished only when every check passes (66); rule 42 covers tasks that already end in a valid start
 
-The master copy of these rules lives in the Verlet Task Agent app (Rules screen). When a rule changes there, export again and replace this file.
+The master copy of these rules lives in the Verlet Task Agent app (Rules screen).

@@ -9,115 +9,146 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* 60-30-10: sand (60) and charcoal (30) get along; electric blue (10) only marks actions. */
+/* Night shift by default: graphite (60) and slate (30) are calm for long hours; electric blue (10) only marks actions. */
 :root{
-  --base:#efe9df; --surface:#fbf8f3; --ink:#24272b; --muted:#666a70; --line:#dcd4c6; --soft:#e6dfd2;
-  --accent:#2f5bff; --accent-ink:#ffffff; --accent-soft:#e3e9ff;
-  --ok:#2e7d4f; --ok-soft:#e0efe5; --bad:#b3372b; --bad-soft:#f6e1dd; --warn:#8a6100; --warn-soft:#f5ead0;
+  --base:#121418; --surface:#1a1d23; --raised:#22262e; --ink:#e9ebee; --muted:#9aa3ae; --line:#2d323b; --soft:#262a32;
+  --accent:#5b84ff; --accent-ink:#ffffff; --accent-soft:#1f2a4a;
+  --ok:#5fc48a; --ok-soft:#173023; --bad:#f08a7e; --bad-soft:#3a1f1d; --warn:#f0c264; --warn-soft:#3a3019;
+  --rail:#0d0f12; --rail-ink:#c9ced6;
   --display:"Archivo","Helvetica Neue",Arial,sans-serif; --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --mono:"IBM Plex Mono",Consolas,monospace;
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --base:#1d1f22; --surface:#26292d; --ink:#ece5d8; --muted:#a9a296; --line:#3a3d42; --soft:#2f3236;
-  --accent:#5b7dff; --accent-ink:#ffffff; --accent-soft:#232d52;
-  --ok:#6cc58f; --ok-soft:#1b3024; --bad:#ef8a7e; --bad-soft:#3b211e; --warn:#e8c46a; --warn-soft:#3a3018; color-scheme:dark;}}
-:root[data-theme="dark"]{
-  --base:#1d1f22; --surface:#26292d; --ink:#ece5d8; --muted:#a9a296; --line:#3a3d42; --soft:#2f3236;
-  --accent:#5b7dff; --accent-ink:#ffffff; --accent-soft:#232d52;
-  --ok:#6cc58f; --ok-soft:#1b3024; --bad:#ef8a7e; --bad-soft:#3b211e; --warn:#e8c46a; --warn-soft:#3a3018; color-scheme:dark;}
+:root[data-theme="light"]{
+  --base:#f3f1ec; --surface:#ffffff; --raised:#faf9f6; --ink:#1f2328; --muted:#5f666e; --line:#e1ddd4; --soft:#ece8df;
+  --accent:#2f5bff; --accent-ink:#ffffff; --accent-soft:#e4eaff;
+  --ok:#2e7d4f; --ok-soft:#e0efe5; --bad:#b3372b; --bad-soft:#f6e1dd; --warn:#8a6100; --warn-soft:#f5ead0;
+  --rail:#1f2328; --rail-ink:#d9dde2; color-scheme:light;
+}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--base);color:var(--ink);font:15px/1.55 var(--body)}
+body{background:var(--base);color:var(--ink);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--display);margin:0;line-height:1.2;text-wrap:balance}
-h1{font-size:20px;font-weight:800}h2{font-size:26px;font-weight:800;letter-spacing:-.01em}h3{font-size:16px;font-weight:700}
+h1{font-size:19px;font-weight:800;letter-spacing:-.01em}h2{font-size:28px;font-weight:800;letter-spacing:-.015em}h3{font-size:17px;font-weight:700}
 p{margin:0}
 a{color:var(--accent)}
-.app{display:grid;grid-template-columns:220px 1fr;min-height:100%}
-.rail{background:var(--ink);color:var(--base);padding:22px 14px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh}
-.brand{padding:0 8px;display:grid;gap:3px}
-.brand small{font:500 11px/1.3 var(--mono);opacity:.65;text-transform:uppercase;letter-spacing:.1em}
-.nav{display:grid;gap:2px}
-.nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:6px;font-weight:500;opacity:.85}
-.nav button:hover{background:rgba(255,255,255,.07);opacity:1}
-.nav button[aria-current="page"]{background:var(--base);color:var(--ink);opacity:1}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100%}
+.rail{background:var(--rail);color:var(--rail-ink);padding:22px 12px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh}
+.brand{padding:0 10px;display:flex;gap:10px;align-items:center}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font:800 15px/1 var(--display)}
+.brand small{display:block;font:500 11px/1.3 var(--mono);opacity:.6;text-transform:uppercase;letter-spacing:.1em}
+.nav{display:grid;gap:3px}
+.nav button{all:unset;cursor:pointer;display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;font-weight:500;color:var(--rail-ink);opacity:.8}
+.nav button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button:hover{background:rgba(255,255,255,.06);opacity:1}
+.nav button[aria-current="page"]{background:rgba(91,132,255,.16);color:#fff;opacity:1;box-shadow:inset 3px 0 0 var(--accent)}
 .nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.nav .count{font:500 11px/1 var(--mono);opacity:.75}
-.rail-foot{margin-top:auto;font-size:12px;opacity:.75;padding:0 8px;display:grid;gap:6px}
+.nav .count{font:600 11px/1 var(--mono);background:rgba(255,255,255,.1);padding:4px 7px;border-radius:999px}
+.nav .count:empty{display:none}
+.rail-foot{margin-top:auto;font-size:12px;opacity:.7;padding:0 10px;display:grid;gap:6px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#888;margin-right:6px;vertical-align:middle}
-.dot.on{background:#6cc58f}.dot.off{background:#ef8a7e}
-main{padding:30px clamp(16px,3vw,44px) 90px;display:grid;gap:22px;align-content:start;min-width:0}
-.view{display:none;gap:20px;align-content:start}.view.active{display:grid}
-.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.dot.on{background:#5fc48a}.dot.off{background:#f08a7e}
+.shell{display:grid;grid-template-rows:auto 1fr;min-width:0}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px clamp(16px,3vw,40px);background:color-mix(in srgb,var(--base) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .crumb{font:600 13px/1 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.topbar .row{gap:8px}
+.kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:3px 6px;color:var(--muted)}
+main{padding:26px clamp(16px,3vw,40px) 90px;display:grid;gap:22px;align-content:start;min-width:0}
+.view{display:none;gap:22px;align-content:start}.view.active{display:grid}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
 .head p{color:var(--muted);max-width:72ch;margin-top:6px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:14px;min-width:0}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:14px;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.tile b{display:block;font:800 26px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.tile b{display:block;font:800 30px/1.05 var(--display);font-variant-numeric:tabular-nums;margin-bottom:4px}
 .tile span{font-size:13px;color:var(--muted)}
-.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.tile.hot{border-color:var(--warn)}.tile.hot b{color:var(--warn)}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--raised);color:var(--ink);padding:9px 15px;border-radius:10px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
 .btn.dark{background:var(--ink);color:var(--base);border-color:var(--ink)}
-.btn.small{padding:5px 10px;font-size:13px;border-radius:6px}
+.btn.ghost{background:transparent}
+.btn.small{padding:5px 11px;font-size:13px;border-radius:8px}
+.btn.icon{padding:8px;border-radius:9px}.btn.icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-label.f{display:grid;gap:5px;font-size:13px;font-weight:600}
-input[type=text],input[type=number],select,textarea{background:var(--base);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
-textarea{resize:vertical;min-height:70px;line-height:1.5}
-.pill{display:inline-block;font:500 12px/1 var(--mono);padding:5px 9px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+label.f{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{background:var(--base);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;color:var(--ink)}
+textarea{resize:vertical;min-height:70px;line-height:1.55}
+#b-names{font:15px/1.7 var(--mono);min-height:150px}
+.pill{display:inline-block;font:600 12px/1 var(--mono);padding:5px 9px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
 .pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.info{background:var(--accent-soft);color:var(--accent)}
-.muted{color:var(--muted)}.small{font-size:13px}.mono{font-family:var(--mono);font-size:13px}
+.muted{color:var(--muted)}.small{font-size:13.5px}.mono{font-family:var(--mono);font-size:13px}
 .list{display:grid;gap:10px}
-.item{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:8px;background:var(--surface)}
+.item{border:1px solid var(--line);border-radius:12px;padding:13px 15px;display:grid;gap:8px;background:var(--raised)}
 .item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.checks{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .checks li{display:grid;grid-template-columns:20px 1fr;gap:6px;font-size:14px}
 .checks .i{font-weight:700}.checks .ok .i{color:var(--ok)}.checks .bad .i{color:var(--bad)}.checks .warn .i{color:var(--warn)}
-.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
-.col{background:var(--soft);border-radius:10px;padding:10px;display:grid;gap:8px;align-content:start;min-height:200px}
-.col-h{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 6px;font-weight:700;font-family:var(--display)}
-.tcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:6px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(230px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:9px;align-content:start;min-height:220px}
+.col-h{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 8px;font-weight:700;font-family:var(--display);border-bottom:1px solid var(--line)}
+.tcard{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:11px;display:grid;gap:7px}
 .tcard .nm{font-weight:600;font-size:14px}.tcard .acts{display:flex;gap:6px;flex-wrap:wrap}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tabs button{cursor:pointer;border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:999px;font-weight:500}
-.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--base);border-color:var(--ink)}
-.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.tabs button{cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:999px;font-weight:500}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font:600 11px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--soft)}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 11px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--raised)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
-.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
-.banner{padding:10px 14px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:14px}
+.empty{padding:26px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.banner{padding:11px 15px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:14px}
 .banner.bad{background:var(--bad-soft);color:var(--bad)}.banner.ok{background:var(--ok-soft);color:var(--ok)}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
-.stream{white-space:pre-wrap;font:12px/1.5 var(--mono);color:var(--muted);max-height:140px;overflow:auto;background:var(--soft);border-radius:8px;padding:10px}
-dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(680px,94vw)}
-dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog form{padding:20px;display:grid;gap:12px;max-height:85vh;overflow:auto}
-.toast{position:fixed;bottom:18px;right:18px;background:var(--ink);color:var(--base);padding:10px 14px;border-radius:8px;font-size:14px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9}
+.stream{white-space:pre-wrap;font:12px/1.5 var(--mono);color:var(--muted);max-height:140px;overflow:auto;background:var(--base);border:1px solid var(--line);border-radius:10px;padding:10px}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(680px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog form{padding:22px;display:grid;gap:12px;max-height:85vh;overflow:auto}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .toast.show{opacity:1;transform:none}
+/* Write: two panes */
+.wlayout{display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:20px;align-items:start}
+.wleft{display:grid;gap:16px;position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;padding-right:2px}
+.wright{display:grid;gap:16px;min-width:0}
+.tlist{display:grid;gap:6px}
+.trow{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;border:1px solid transparent;background:var(--raised)}
+.trow:hover{border-color:var(--line)}
+.trow[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.trow:focus-visible{outline:2px solid var(--accent)}
+.trow .id{font:600 12px/1 var(--mono);color:var(--muted)}
+.trow .nm{font-size:14px;font-weight:500;line-height:1.35}
+.sdot{width:9px;height:9px;border-radius:50%}
+.sdot.ok{background:var(--ok)}.sdot.warn{background:var(--warn)}.sdot.bad{background:var(--bad)}
 /* Task document */
-.doc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;display:grid;gap:16px}
-.doc .tid{font:600 13px/1 var(--mono);color:var(--muted)}
-.doc h3.sec{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
-.doc ol{margin:0;padding-left:22px;display:grid;gap:5px}
-.doc ul{margin:0;padding-left:20px;display:grid;gap:4px}
-.doc table td,.doc table th{padding:7px 10px}
-.vsheet{border:2px solid var(--ink);border-radius:10px;padding:16px;display:grid;gap:8px;background:var(--base)}
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,32px);display:grid;gap:22px}
+.doc .tid{font:600 13px/1 var(--mono);color:var(--accent)}
+.doc h3.sec{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}
+.doc ol{margin:0;padding-left:22px;display:grid;gap:7px}
+.doc ol li::marker{color:var(--accent);font-weight:700}
+.doc ul{margin:0;padding-left:20px;display:grid;gap:5px}
+.doc p,.doc li{max-width:78ch}
+.doc table td,.doc table th{padding:8px 11px}
+.vsheet{border:2px dashed var(--accent);border-radius:14px;padding:18px;display:grid;gap:8px;background:var(--raised)}
 .vsheet b{font-family:var(--display)}
 .editgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .editgrid .wide{grid-column:1/-1}
-.prog{display:grid;gap:6px}
-.prog .line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}
+.prog{display:grid;gap:4px}
+.prog .line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:7px 0;font-size:14px}
 details summary{cursor:pointer;font-weight:600}
+.empty-doc{display:grid;place-items:center;text-align:center;gap:8px;padding:60px 20px;border:1px dashed var(--line);border-radius:14px;color:var(--muted)}
+@media (max-width:1100px){.wlayout{grid-template-columns:1fr}.wleft{position:static;max-height:none}}
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
   .rail{position:static;height:auto;padding:12px}
-  .nav{grid-template-columns:repeat(4,1fr)}.nav button{justify-content:center;font-size:13px;padding:8px 4px}.nav .count{display:none}
+  .nav{grid-template-columns:repeat(4,1fr)}.nav button{grid-template-columns:1fr;justify-items:center;font-size:12px;padding:8px 4px;gap:4px}.nav .count{display:none}
   .rail-foot{display:none}
   .grid2,.grid3,.editgrid{grid-template-columns:1fr}
 }
@@ -128,16 +159,16 @@ details summary{cursor:pointer;font-weight:600}
 <body>
 <div class="app">
   <aside class="rail">
-    <div class="brand"><small>Verlet Robotics</small><h1>Task Agent</h1></div>
+    <div class="brand"><div class="logo">V</div><div><small>Verlet Robotics</small><h1>Task Agent</h1></div></div>
     <nav class="nav" aria-label="Screens">
-      <button data-v="today" aria-current="page">Today</button>
-      <button data-v="write">Write <span class="count" id="nc-write"></span></button>
-      <button data-v="ideas">Ideas</button>
-      <button data-v="pipeline">Pipeline <span class="count" id="nc-pipe"></span></button>
-      <button data-v="news">News <span class="count" id="nc-news"></span></button>
-      <button data-v="sourcing">Sourcing <span class="count" id="nc-src"></span></button>
-      <button data-v="rules">Rules</button>
-      <button data-v="library">Library</button>
+      <button data-v="today" aria-current="page"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Today</span><span class="count"></span></button>
+      <button data-v="write"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Write</span><span class="count" id="nc-write"></span></button>
+      <button data-v="ideas"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span>Ideas</span><span class="count"></span></button>
+      <button data-v="pipeline"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Pipeline</span><span class="count" id="nc-pipe"></span></button>
+      <button data-v="news"><svg viewBox="0 0 24 24"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/></svg><span>News</span><span class="count" id="nc-news"></span></button>
+      <button data-v="sourcing"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg><span>Sourcing</span><span class="count" id="nc-src"></span></button>
+      <button data-v="rules"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/></svg><span>Rules</span><span class="count"></span></button>
+      <button data-v="library"><svg viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4z"/><path d="M16 5l3.5-1 2.5 15.5-3.5 1z"/></svg><span>Library</span><span class="count"></span></button>
     </nav>
     <div class="rail-foot">
       <div><span class="dot" id="dot-db"></span><span id="st-db">Store: connecting…</span></div>
@@ -146,6 +177,8 @@ details summary{cursor:pointer;font-weight:600}
       <div id="st-me"></div>
     </div>
   </aside>
+<div class="shell">
+  <div class="topbar"><span class="crumb" id="crumb">Today</span><div class="row"><span class="small muted" style="display:flex;gap:6px;align-items:center">Press <span class="kbd">W</span> to write</span><button class="btn small primary" data-go="write">New tasks</button><button class="btn icon" id="theme-btn" aria-label="Switch light or dark"><svg viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg></button></div></div>
 
 <main>
 <div id="global-banner"></div>
@@ -166,33 +199,33 @@ details summary{cursor:pointer;font-weight:600}
 
 <!-- WRITE -->
 <section class="view" id="v-write">
-  <div class="head"><div><h2>Write tasks</h2><p>Paste task names, one per line. The agent gives each an ID, writes the full description and its reset under the in-house rules, runs the checks and saves it. Open any task below to read, edit or rewrite it.</p></div></div>
-  <div class="card">
-    <label class="f" for="b-names">One task per line: ID · name | details. The ID is optional (the agent gives the next free one) and so are the details. Example: HOM-001 · Staple three sheets into one document | desktop stapler, A4 paper</label>
-    <textarea id="b-names" rows="7" placeholder="HOM-001 · Staple three sheets into one document and file it | desktop stapler, A4 paper&#10;CLO-001 · Hang the button shirt on a hanger and button it&#10;LIQ-001 · Pour red water through the funnel into the thermos cup"></textarea>
-    <div class="row">
-      <label class="f" style="min-width:240px">Category code <select id="b-code"></select></label>
-      <label class="f" style="flex:1;min-width:240px">Bunch family name (optional) <input type="text" id="b-bunch" placeholder="e.g. Fill and close tubes"></label>
-      <button class="btn primary" id="b-go" style="align-self:end">Write all</button>
-      <button class="btn" id="b-stop" style="align-self:end" hidden>Stop after this one</button>
+  <div class="head"><div><h2>Write tasks</h2><p>Paste one task per line. The agent writes the full description, the reset and the Variation Sheet under the in-house rules, checks it and saves it.</p></div></div>
+  <div class="wlayout">
+    <div class="wleft">
+      <div class="card">
+        <label class="f" for="b-names">Paste your list as it is: old sheet IDs (CL-10-T01), new IDs (HOM-001), numbered names, or names with their description underneath</label>
+        <textarea id="b-names" rows="6" placeholder="CL-10-T01: Open the pill bottle, pour 5 beads into the petri dish (43)&#10;KP-05-T01: Pack a repair kit into the black hard case (add an item into the inside pocket)&#10;1. Polish a shoe with Kiwi polish&#10;Take a shoe, brush it with a towel, open the tin…"></textarea>
+        <div class="grid2" style="gap:10px">
+          <label class="f">Category <select id="b-code"></select></label>
+          <label class="f">Bunch family (optional) <input type="text" id="b-bunch" placeholder="e.g. Staple and file"></label>
+        </div>
+        <div class="row"><button class="btn primary" id="b-read">Read my list</button><button class="btn" id="w-all">Rewrite all under current rules</button><button class="btn" id="b-stop" hidden>Stop after this one</button></div>
+        <p class="small muted">The agent shows what it understood before writing. About a minute per task; keep this page open. Rules: <span id="b-rules"></span>.</p>
+        <div id="b-prog" class="prog"></div>
+      </div>
+      <div class="card">
+        <div class="item-top"><h3>Written tasks</h3><span class="small muted" id="w-count"></span></div>
+        <div class="grid2" style="gap:8px"><input type="text" id="w-q" placeholder="Search ID or name"><select id="w-filter"><option value="">All</option><option value="fail">Failing checks</option><option value="stale">Older rules</option><option value="mine">Added by me</option></select></div>
+        <div id="w-list" class="tlist"></div>
+      </div>
+      <div class="card">
+        <h3>Export</h3>
+        <div class="row"><button class="btn dark small" id="x-xlsx">Excel</button><button class="btn small" id="x-md">Print cards</button><button class="btn small" id="x-json">For Codex</button><label class="btn small" for="x-import" style="cursor:pointer">Import from Codex</label><input type="file" id="x-import" accept=".json,application/json" hidden></div>
+        <label class="small"><input type="checkbox" id="x-only-ok" checked> Only tasks with no failing checks</label>
+        <div id="x-info" class="small muted"></div>
+      </div>
     </div>
-    <p class="small muted">Keep this page open while it writes. Each task takes about a minute. Rules in use: <span id="b-rules"></span>.</p>
-    <div id="b-prog" class="prog"></div>
-  </div>
-  <div class="card">
-    <div class="item-top"><div><h3>Written tasks</h3><p class="small muted" id="w-count"></p></div>
-      <div class="row"><input type="text" id="w-q" placeholder="Search ID or name" style="width:220px"><select id="w-filter" style="width:200px"><option value="">All</option><option value="fail">Has failing checks</option><option value="stale">Older rules version</option><option value="mine">Added by me</option></select></div></div>
-    <div id="w-list"></div>
-  </div>
-  <div id="w-doc"></div>
-  <div class="card">
-    <div class="item-top"><div><h3>Export and share with Codex</h3><p class="small muted">Excel for the team, Markdown to print the task cards and Variation Sheets, JSON for Codex. Codex's work comes back with "Import from Codex".</p></div></div>
-    <div class="row">
-      <button class="btn dark" id="x-xlsx">Excel (.xlsx)</button><button class="btn" id="x-md">Print cards (Markdown)</button><button class="btn" id="x-json">For Codex (JSON)</button>
-      <label class="btn" for="x-import" style="cursor:pointer">Import from Codex</label><input type="file" id="x-import" accept=".json,application/json" hidden>
-      <label class="small"><input type="checkbox" id="x-only-ok" checked> Only tasks with no failing checks</label>
-    </div>
-    <div id="x-info" class="small muted"></div>
+    <div class="wright"><div id="w-doc"><div class="empty-doc"><h3>No task open</h3><p>Pick a task on the left, or paste names and press Write all.</p></div></div></div>
   </div>
 </section>
 
@@ -261,6 +294,7 @@ details summary{cursor:pointer;font-weight:600}
 </section>
 </main>
 </div>
+</div>
 
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -285,7 +319,8 @@ function codes(){return (S.rules&&S.rules.codes)||DEF_CODES}
 
 /* ---------- navigation ---------- */
 var VIEWS=["today","write","ideas","pipeline","news","sourcing","rules","library"];
-function show(v){if(VIEWS.indexOf(v)<0)v="today";VIEWS.forEach(function(x){$("v-"+x).classList.toggle("active",x===v)});document.querySelectorAll(".nav button").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===v?"page":"false")});if(location.hash!=="#"+v){try{history.replaceState(null,"","#"+v)}catch(e){}}window.scrollTo(0,0)}
+var TITLES={today:"Today",write:"Write tasks",ideas:"Ideas",pipeline:"Pipeline",news:"News and leads",sourcing:"Sourcing",rules:"Rules",library:"Library"};
+function show(v){if(VIEWS.indexOf(v)<0)v="today";var cr=document.getElementById("crumb");if(cr)cr.textContent=TITLES[v];VIEWS.forEach(function(x){$("v-"+x).classList.toggle("active",x===v)});document.querySelectorAll(".nav button").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===v?"page":"false")});if(location.hash!=="#"+v){try{history.replaceState(null,"","#"+v)}catch(e){}}window.scrollTo(0,0)}
 document.querySelectorAll(".nav button").forEach(function(b){b.addEventListener("click",function(){show(b.dataset.v)})});
 document.addEventListener("click",function(e){var g=e.target.closest&&e.target.closest("[data-go]");if(g)show(g.dataset.go)});
 window.addEventListener("hashchange",function(){show(location.hash.slice(1))});
@@ -295,7 +330,7 @@ function setDot(id,on,text){$("dot-"+id).className="dot "+(on?"on":"off");$("st-
 function banner(msg,kind){$("global-banner").innerHTML=msg?'<div class="banner '+(kind||"")+'">'+esc(msg)+'</div>':""}
 function waitUse(name){return new Promise(function(res){var done=false;var t=setTimeout(function(){if(!done){done=true;res(null)}},10000);function go(){window.claude.use(name).then(function(v){if(!done){done=true;clearTimeout(t);res(v)}},function(){if(!done){done=true;clearTimeout(t);res(null)}})}
   try{if(window.claude&&window.claude.use)go();else{var n=0;var iv=setInterval(function(){n++;if(window.claude&&window.claude.use){clearInterval(iv);go()}else if(n>40)clearInterval(iv)},250)}}catch(e){done=true;clearTimeout(t);res(null)}})}
-function loadRef(){var names=["bench","library","assets"];Promise.all(names.map(function(n){return fetch("ref/"+n+".json").then(function(r){if(!r.ok)throw 0;return r.json()})})).then(function(a){names.forEach(function(n,i){S.ref[n]=a[i]});renderAll()}).catch(function(){banner("The reference files (library and items) could not be loaded. Reload the page.","bad")})}
+function loadRef(){var names=["bench","library","assets","oldtasks"];Promise.all(names.map(function(n){return fetch("ref/"+n+".json").then(function(r){if(!r.ok)throw 0;return r.json()})})).then(function(a){names.forEach(function(n,i){S.ref[n]=a[i]});renderAll()}).catch(function(){banner("The reference files (library and items) could not be loaded. Reload the page.","bad")})}
 function snapList(col,key,after){return S.db.collection(col).onSnapshot(function(s){S[key]=s.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x});after()},errSub)}
 function boot(){
   loadRef();
@@ -340,33 +375,39 @@ function ask(prompt,opts){opts=opts||{};if(!S.sample)return Promise.reject({code
 function aiErr(el,e){var m=e&&e.code==="rate_limited"?"Claude is busy. Wait a minute, then try again.":e&&e.code==="not_granted"?"Claude was not allowed for this page. Allow it when the page asks.":(e&&e.message)||"Something went wrong.";el.innerHTML='<div class="banner bad">'+esc(m)+'</div>'}
 function streamTo(id){var el=$(id);el.innerHTML='<div class="row small muted"><span class="spin"></span> Thinking…</div><div class="stream" hidden></div>';var box=el.querySelector(".stream");return {on:function(p){box.hidden=false;box.textContent=p.text.slice(-900);box.scrollTop=box.scrollHeight},done:function(){el.innerHTML=""}}}
 
-/* ---------- model examples for the writer ---------- */
-var MODEL=[{
+/* ---------- model task for the writer (rules v1.2 shape) ---------- */
+var MODEL={
  code:"LIQ",name:"Transfer red water into a 50 mL tube and close it",
  instruction:"Transfer one pipette fill of red water from the cup into the 50 mL tube, close the tube, and leave it in the tube rack.",
- initial:[{item:"50 mL tube",how:"empty, cap off",zones:["Supply","Staging"],role:"moves"},{item:"10 mL pipette",how:"empty",zones:["Tool","Staging","Used Equipment"],role:"moves"},{item:"50 mL tube rack",how:"holes empty",zones:["Operation","Finished Goods"],role:"stays"},{item:"Plastic cup",how:"holding red water",zones:["Supply","Staging"],role:"stays"}],
- steps:["Put the 50 mL tube into an empty hole of the tube rack, until it stands in the hole.","Fill the 10 mL pipette from the cup, until the bulb returns to its open shape.","Squeeze the pipette over the 50 mL tube until the pipette is empty, and place the pipette in a zone different from where it started.","Close the 50 mL tube with its cap until the cap stops turning, and leave it in the same hole of the rack. The tube may come out of the rack while it is closed, and it is closed after it is filled."],
- target:["50 mL tube: holding red water, closed, in the same hole of the tube rack.","10 mL pipette: empty, in a zone different from where it started.","Tube rack and plastic cup: where they started."],
- free:"Which hole, how the tube is closed, how each item is held, how the pipette lies.",
- qc:["The 50 mL tube goes into a hole of the rack.","The pipette fills from the cup.","The pipette empties into the tube, and the pipette ends in a new zone.","The tube is closed and back in the same hole."],
+ initial:[{item:"50 mL tube",how:"empty, cap off",zones:["Supply","Staging"],role:"moves"},{item:"10 mL pipette",how:"empty",zones:["Tool","Staging"],role:"moves"},{item:"50 mL tube rack",how:"holes empty",zones:["Operation","Finished Goods"],role:"stays"},{item:"Plastic cup",how:"holding red water",zones:["Supply","Staging"],role:"stays"}],
+ steps:["Put the 50 mL tube into an empty hole of the tube rack, until it stands in the hole.","Fill the 10 mL pipette from the plastic cup, until the bulb returns to its open shape.","Squeeze the pipette over the 50 mL tube until the pipette is empty, and place it in a new zone.","Close the 50 mL tube with its cap after it is filled, until the cap stops turning, and leave the tube in the same hole of the rack."],
+ target:[{item:"50 mL tube",how:"holding red water, closed",zones:[],place:"inside the same hole of the 50 mL tube rack"},{item:"10 mL pipette",how:"empty",zones:["Tool","Used Equipment"],place:""},{item:"50 mL tube rack",how:"holding the closed tube",zones:[],place:"where it started"},{item:"Plastic cup",how:"holding less red water",zones:[],place:"where it started"}],
+ free:"Which hole, how the tube is closed, whether the tube comes out of the rack while it is closed, how the pipette lies, how each item is held.",
+ qc:["The 50 mL tube stands in a hole of the rack.","The pipette fills from the plastic cup.","The pipette empties into the tube and ends in Tool (2) or Used Equipment (3), not its start zone.","The tube is closed and back in the same hole."],
  pass:"Target State seen, no red water on the mat, nothing fell.",
  fail:"The tube is open or in a different hole; red water on the mat or on the outside of the tube; the pipette is in its start zone; the rack or the cup moved; an item fell.",
- realTools:"10 mL transfer pipette and 50 mL conical tube, as used in real labs. In stock. Not improvised.",needs:"None",usesUp:"About 10 mL of red water per episode.",rigTest:"The gripper can squeeze the pipette bulb and turn the tube cap until it stops.",
- reverse:{possible:true,why:"",instruction:"Empty the 50 mL tube back into the cup, leave it open with its cap beside it, and put the pipette back in one of its start zones.",steps:["Open the 50 mL tube, until the cap is off.","Pour the red water from the tube into the cup, until the tube is empty.","Place the empty tube and its cap in one of the tube's start zones, not the zone it just ended in.","Place the pipette in one of its start zones, not the zone it just ended in."],target:["50 mL tube: empty, cap off, in Supply or Staging.","10 mL pipette: empty, in Tool, Staging or Used Equipment.","Tube rack and plastic cup: where they started."],qc:["The cap comes off the tube.","The red water goes from the tube into the cup.","The empty tube and its cap end in a start zone.","The pipette ends in a start zone."],pass:"Target State seen, no red water on the mat, nothing fell.",fail:"Red water left in the tube; red water on the mat; the tube or the pipette in the zone it started this reset in; an item fell."},
- variation:{start:"Tube, cap and pipette may lie or stand any way in their listed zones.",doing:"Fill the pipette with the tube already in the rack or before; close the tube in the rack or lift it out first; hold the tube with one gripper and turn with the other, or turn in the rack.",end:"Any hole; the pipette may lie any way in its new zone.",qcNever:"Grip, angle, which hole, how the tube is closed.",mistakes:"Tube put back in a different hole; drops on the outside of the tube; pipette left in its start zone."}
-}];
-var OUT_SCHEMA='{"code":"LIQ|LAB|LID|TOL|CAB|SRT|HOM|CLO|PAK|FIX","name":"","instruction":"","initial":[{"item":"","how":"","zones":["Supply"],"role":"moves|stays|not used"}],"steps":[""],"target":[""],"free":"","qc":[""],"pass":"","fail":"","realTools":"","needs":"None or items","usesUp":"None or what and how much per episode","rigTest":"","reverse":{"possible":true,"why":"","instruction":"","steps":[""],"target":[""],"qc":[""],"pass":"","fail":""},"variation":{"start":"","doing":"","end":"","qcNever":"","mistakes":""},"platformRisk":"None or the platform task it is close to"}';
+ realTools:"10 mL transfer pipette and 50 mL conical tube, as used in real labs. In stock. Not improvised.",needs:"None",usesUp:"About 10 mL of red water per episode.",rigTest:"The gripper can squeeze the pipette bulb and turn the tube cap until it stops. One pipette fill fits in the tube with room to spare.",platformRisk:"None",
+ variation:{start:["Tube, cap and pipette lie or stand any way in their listed zones.","The cap may sit next to the tube or in another listed zone of the tube.","The rack may face any way; any of its holes may be empty."],doing:["Put the tube in the rack first, or fill the pipette first.","Hold the tube with one gripper while the other squeezes the pipette.","Squeeze the pipette with the tube standing in the rack and nothing holding it.","Close the tube while it stands in the rack.","Take the tube out, close it in the air, and put it back in the same hole.","Pass the pipette from one gripper to the other before squeezing."],end:["The pipette may lie in Tool (2) or Used Equipment (3), any way round.","The tube may face any way in its hole.","The cup may hold more or less water at the end, depending on the fill."],scenarios:["A lab technician dosing a sample tube from a stock cup.","A school science class measuring coloured water.","A clinic preparing a urine or saliva sample tube."],qcNever:"Grip, angle, which hole, the order of the first two steps, how the tube is closed, how the pipette lies.",mistakes:["The tube goes back into a different hole.","Drops on the outside of the tube.","The pipette is left in its start zone.","The cap is not turned until it stops."]},
+ reverse:{possible:true,why:"",name:"Reset: Transfer red water into a 50 mL tube and close it",instruction:"Pour the red water from the 50 mL tube back into the plastic cup, and leave the empty tube with its cap off and the pipette in start zones.",
+  steps:["Open the 50 mL tube in the rack, until the cap is off.","Pour the red water from the tube into the plastic cup, until the tube is empty.","Place the empty tube and its cap in Supply (1) or Staging (4).","Place the 10 mL pipette in Tool (2) or Staging (4), not the zone it ended in."],
+  target:[{item:"50 mL tube",how:"empty, cap off",zones:["Supply","Staging"],place:""},{item:"10 mL pipette",how:"empty",zones:["Tool","Staging"],place:""},{item:"50 mL tube rack",how:"holes empty",zones:[],place:"where it started"},{item:"Plastic cup",how:"holding red water",zones:[],place:"where it started"}],
+  free:"How the cap comes off, how the water is poured, how each item lies, how each item is held.",
+  qc:["The cap comes off the tube.","The red water goes from the tube into the cup, until the tube is empty.","The empty tube and its cap end in Supply (1) or Staging (4).","The pipette ends in Tool (2) or Staging (4), not the zone it ended the forward task in."],
+  pass:"Target State seen, no red water on the mat, nothing fell.",fail:"Red water stays in the tube; red water on the mat; the tube or the pipette is in the zone it started this reset in; an item fell.",
+  variation:{start:["The tube stands closed in any hole of the rack.","The pipette lies any way in Tool (2) or Used Equipment (3).","The cup may hold any level of red water."],doing:["Open the tube in the rack, or take it out first.","Pour with the tube held over the cup in one gripper.","Hold the cup with one gripper and pour with the other.","Pour the water in two goes.","Place the tube before the cap, or the cap first.","Move the pipette first or last."],end:["Tube and cap may share a zone or not.","The tube may lie or stand any way.","The pipette may lie any way."],scenarios:["A lab technician emptying a used sample tube.","Cleaning up after a school experiment.","A clinic resetting sample tubes for the next patient."],qcNever:"Grip, angle, pouring speed, the order of the last two steps, how items lie.",mistakes:["Water spilled while pouring.","The tube put back in the rack.","The pipette left where it ended the forward task."]}}
+};
+var OUT_SCHEMA='{"code":"LIQ|LAB|LID|TOL|CAB|SRT|HOM|CLO|PAK|FIX","name":"","instruction":"","initial":[{"item":"","how":"","zones":["Supply"],"role":"moves|stays|not used"}],"steps":[""],"target":[{"item":"same names as initial","how":"","zones":["End zone"],"place":"or: inside the <item> | where it started"}],"free":"","qc":[""],"pass":"","fail":"","realTools":"","needs":"None or items","usesUp":"None or what and how much per episode","rigTest":"","platformRisk":"None or the platform task it is close to","variation":{"start":[""],"doing":[""],"end":[""],"scenarios":[""],"qcNever":"","mistakes":[""]},"reverse":{"possible":true,"why":"","name":"Reset: <task name>","instruction":"","steps":[""],"target":[{"item":"","how":"","zones":[""],"place":""}],"free":"","qc":[""],"pass":"","fail":"","variation":{"start":[""],"doing":[""],"end":[""],"scenarios":[""],"qcNever":"","mistakes":[""]}}}';
 
 function writerPrompt(name,notes,code,extra){
-  return "You write one teleoperation task description for Verlet Robotics, in Kigali. Follow every rule below exactly. No invented facts: where a size, fit or stock fact is unknown, put it in rigTest as something to test, or in needs.\n\nRULES\n"+rulesText()+
+  return "You write one teleoperation task description and its reset for Verlet Robotics, in Kigali. Follow every rule below exactly. No invented facts: where a size, fit or stock fact is unknown, put it in rigTest as something to test, or in needs.\n\nRULES\n"+rulesText()+
   "\n\nBENCH\n"+benchText()+
   "\n\nITEMS IN THE ASSET POOL (use these names when the item is here; anything else is a Needs item)\n"+assetText()+
   "\n\nLESSONS FROM THE RIGS\n"+lessonsText()+
-  "\n\nTASKS ALREADY IN THE OLD WORKBOOK (do not copy their wording)\n"+libText()+
+  "\n\nTASKS IN THE OLD WORKBOOK (do not copy their wording)\n"+libText()+
   "\n\nNEW TASKS ALREADY WRITTEN (do not repeat)\n"+newText()+
-  "\n\nMODEL TASK (match its style, detail and length)\n"+JSON.stringify(MODEL[0])+
+  "\n\nMODEL TASK (match its shape, detail and length)\n"+JSON.stringify(MODEL)+
   "\n\nTASK TO WRITE\nName given: "+name+(notes?"\nNotes from the owner: "+notes:"")+(code?"\nCategory code: "+code:"\nChoose the best category code.")+(extra?"\n\n"+extra:"")+
-  "\n\nHOW TO WRITE IT\n- Improve the name into the general words people use for the job, keep its meaning.\n- Write the steps first (at most 5), then trace the instruction, target, QC, pass and fail from them.\n- In the JSON zones arrays use exactly these names: "+ZN.join(", ")+". In any sentence, write a zone with its number, e.g. Staging (4). Each moving item lists 2 or 3 start zones; stays-in-place items list 1 to 3.\n- No \"then\" anywhere. No grab method, gripper or angle in steps. No colours unless needed. No position words unless the job needs them.\n- QC has exactly one line per step, same order.\n- fail: concrete wrong results separated by semicolons, at least three.\n- Reverse: follow the reverse rule; if the job cannot really be undone, possible=false with why.\n- Variation sheet: real alternative ways an operator can start, do and end this job.\n\nAnswer with JSON only, in this shape:\n"+OUT_SCHEMA;
+  "\n\nHOW TO WRITE IT\n- Improve the name into the general words people use for the job, keep its meaning.\n- Write the steps first (at most 5), then trace the instruction, Initial State, Target State, QC, Pass and Fail from them.\n- zones arrays use exactly these names: "+ZN.join(", ")+". In sentences, write a zone with its number, e.g. Staging (4).\n- Initial State: each moving item lists 2 or 3 possible start zones; items that stay list 1 to 3.\n- Target State: one row for every Initial State item, same item names. End zones follow rule 61 (finished product: Staging, Operation or Finished Goods; tool after use: Tool or Used Equipment; part taken off or leftover: Used Equipment or Staging). A moved item's end zones must include at least one zone that is not among its start zones. Use place 'inside the <item>' for items put into something and 'where it started' for items that stay; then zones may be empty.\n- No 'then' anywhere. No grab method, gripper or angle in steps. No colours unless needed. No position words unless the job needs them. No banned words anywhere, including the Variation Sheet.\n- QC has exactly one line per step, same order. Fail: concrete wrong results separated by semicolons, at least three.\n- Variation Sheet (rule 65): at least 3 start variations, 6 real ways to do the job, 3 end variations, 3 real-world scenarios where people do this job, what QC never judges, at least 3 common mistakes. Every way must be real and possible with two-jaw 95 mm grippers.\n- Reverse: its own complete task (rule 64). Its Initial State is the forward Target State (the app copies it). Its target puts each moved item back in its start zones, not the zone it ended the forward task in. Its own Variation Sheet with the same minimums. If the job cannot be undone with real tools, or the forward already ends in a valid start, possible=false with why.\n\nAnswer with JSON only, in this shape:\n"+OUT_SCHEMA;
 }
 
 /* ---------- checks ---------- */
@@ -374,39 +415,47 @@ var BANNED=["firmly","neatly","properly","correctly","carefully","gently","slowl
 var POS=["middle","top","bottom","left","right","beside","side by side","in a row"];
 var COLOURS=["blue","green","yellow","orange","purple","pink","black","white","grey","gray","brown"];
 function rx(w){return new RegExp("\\b"+w.replace(/\s+/g,"\\s+")+"\\b","i")}
+function nm(s){return String(s||"").toLowerCase().replace(/\(.*?\)/g,"").replace(/\s+/g," ").trim()}
+function vlist(v,k){var x=(v||{})[k];return Array.isArray(x)?x.filter(function(s){return String(s).trim()}):arr(x)}
 function checkDoc(d){
   var out=[];function add(ok,name,note,level){out.push({ok:!!ok,level:ok?"ok":(level||"bad"),name:name,note:note||""})}
-  var c=codes();add(/^[A-Z]{3}-\d{3}$/.test(d.id||""),"ID is 3 letters, a dash and 3 digits",d.id||"no ID");add(c[String(d.id||"").slice(0,3)],"ID uses a known category code",String(d.id||"").slice(0,3),"warn");
+  var c=codes(),isR=!!d.isReverse;
+  add(isR?/^[A-Z]{3}-\d{3}R$/.test(d.id||""):/^[A-Z]{3}-\d{3}$/.test(d.id||""),isR?"Reset ID is the task ID with R":"ID is 3 letters, a dash and 3 digits",d.id||"no ID");
+  add(c[String(d.id||"").slice(0,3)],"ID uses a known category code",String(d.id||"").slice(0,3),"warn");
   add(d.name&&d.name.length>5,"Task name present");
   var ins=String(d.instruction||"").trim();add(ins&&ins.split(/[.!?](\s|$)/).filter(function(x){return x&&x.trim()}).length===1,"Instruction is one sentence");
-  var ini=d.initial||[];var badZ=[];ini.forEach(function(r){(r.zones||[]).forEach(function(z){if(ZN.indexOf(z)<0)badZ.push(z)})});
-  add(ini.length>0&&ini.every(function(r){return r.item&&r.how&&(r.zones||[]).length}),"Initial State: every item has how it starts and start zones");
+  var ini=d.initial||[],tg=d.target||[];var badZ=[];
+  ini.concat(tg).forEach(function(r){(r.zones||[]).forEach(function(z){if(ZN.indexOf(z)<0)badZ.push(z)})});
+  add(ini.length>0&&ini.every(function(r){return r.item&&r.how&&((r.zones||[]).length||r.place)}),"Initial State: every item has how it starts and where");
   add(!badZ.length,"Only the six zone names are used",badZ.length?"Unknown: "+badZ.join(", "):"");
-  var mv=ini.filter(function(r){return r.role==="moves"});add(mv.every(function(r){return (r.zones||[]).length>=2}),"Every moving item has at least two start zones","","warn");
+  if(!isR){var mv=ini.filter(function(r){return r.role==="moves"});add(mv.every(function(r){return (r.zones||[]).length>=2}),"Every moving item has at least two start zones","","warn")}
+  add(tg.length>0&&tg.every(function(r){return typeof r==="object"&&r.item&&r.how&&((r.zones||[]).length||r.place)}),"Target State table: every row has how it ends and end zones or a place");
+  var tn=tg.map(function(r){return nm(r.item)});var missing=ini.filter(function(r){return tn.indexOf(nm(r.item))<0}).map(function(r){return r.item});
+  add(!missing.length,"Every Initial State item has a Target State row",missing.join(", "));
+  var stuck=[];ini.forEach(function(r){if(r.role!=="moves")return;var t=tg.filter(function(x){return nm(x.item)===nm(r.item)})[0];if(t&&(t.zones||[]).length&&(r.zones||[]).length&&t.zones.every(function(z){return r.zones.indexOf(z)>=0}))stuck.push(r.item)});
+  add(!stuck.length,"A moved item can end outside its start zones",stuck.join(", "));
   var st=d.steps||[],qc=d.qc||[];
   add(st.length>=1&&st.length<=5,"At most 5 steps",st.length+" steps");
   add(qc.length===st.length,"One QC line per step",qc.length+" QC lines, "+st.length+" steps");
-  var all=[d.instruction].concat(st,d.target||[],qc,[d.pass,d.fail,d.free]).join("\n");
-  add(!/\bthen\b/i.test(all),"No “then”");
-  var stepTxt=st.join("\n");
-  add(!/\bgripper|\bangle\b|\bleft arm\b|\bright arm\b|\bleader\b|\bfollower\b/i.test(stepTxt),"Steps never say gripper, angle or arm");
-  var body=all.replace(/full turns around/gi,"");var hits=BANNED.filter(function(w){return rx(w).test(body)});add(!hits.length,"No banned words",hits.join(", "));
-  var ph=POS.filter(function(w){return rx(w).test(body)});add(!ph.length,"No position words unless the job needs them",ph.join(", "),"warn");
-  var ch=COLOURS.filter(function(w){return rx(w).test(body)});add(!ch.length,"No colours unless needed",ch.join(", "),"warn");
+  var v=d.variation||{};var vtxt=[].concat(vlist(v,"start"),vlist(v,"doing"),vlist(v,"end"),vlist(v,"scenarios"),vlist(v,"mistakes"),[v.qcNever||""]).join("\n");
+  var tgTxt=tg.map(function(r){return r.item+" "+r.how+" "+(r.place||"")}).join("\n");
+  var all=[d.instruction].concat(st,qc,[tgTxt,d.pass,d.fail,d.free]).join("\n");
+  add(!/\bthen\b/i.test(all+"\n"+vtxt),"No “then”");
+  add(!/\bgripper|\bangle\b|\bleft arm\b|\bright arm\b|\bleader\b|\bfollower\b/i.test(st.join("\n")),"Steps never say gripper, angle or arm");
+  var body=(all+"\n"+vtxt).replace(/full turns around/gi,"");var hits=BANNED.filter(function(w){return rx(w).test(body)});add(!hits.length,"No banned words",hits.join(", "));
+  var ph=POS.filter(function(w){return rx(w).test(all)});add(!ph.length,"No position words unless the job needs them",ph.join(", "),"warn");
+  var ch=COLOURS.filter(function(w){return rx(w).test(all)});add(!ch.length,"No colours unless needed",ch.join(", "),"warn");
   var dang=st.filter(function(s){return /\buntil\s*[.,;]?$/i.test(s)});add(!dang.length,"Every “until” ends at something visible");
-  add((d.target||[]).length>0,"Target State has a line per item");
   add(String(d.free||"").trim().length>0,"Free line present");
   add(String(d.fail||"").split(";").filter(function(x){return x.trim()}).length>=3,"Fail lists at least three concrete results");
-  add(String(d.realTools||"").trim().length>0,"Real tools named");
-  add(String(d.usesUp||"").trim().length>0,"Uses-up line present");
-  var strip=function(s){return String(s).toLowerCase().replace(new RegExp("\\b("+COLOURS.concat(["red","clear"]).join("|")+")\\b","g"),"").replace(/\s+/g," ").trim()};
-  var A=((S.ref.assets&&S.ref.assets.items)||[]).map(function(a){return strip(a.name)});
-  var unk=ini.map(function(r){return r.item}).filter(function(n){if(!n)return false;var k=strip(n);return !A.some(function(a){return a===k||a.indexOf(k)>=0||k.indexOf(a)>=0})});
-  var needs=String(d.needs||"").toLowerCase();var unlisted=unk.filter(function(n){return needs.indexOf(n.toLowerCase())<0&&!/^\d+\s/.test(n)});
-  add(!unlisted.length,"Items not in the Asset Pool are listed as Needs",unlisted.length?unlisted.join(", "):"","warn");
-  var r=d.reverse||{};if(r.possible===false){add(String(r.why||"").trim(),"No-reverse reason given")}
-  else{var rs=r.steps||[],rq=r.qc||[];add(rs.length>=1&&rs.length<=5&&rq.length===rs.length,"Reset: at most 5 steps, one QC line each",rs.length+" steps, "+rq.length+" QC");add(!/\bthen\b/i.test([r.instruction].concat(rs,rq).join(" ")),"Reset: no “then”")}
-  var v=d.variation||{};add(v.doing&&v.end,"Variation Sheet written");
+  if(!isR){add(String(d.realTools||"").trim().length>0,"Real tools named");add(String(d.usesUp||"").trim().length>0,"Uses-up line present")}
+  var strip=function(s){return String(s).toLowerCase().replace(new RegExp("\\b("+COLOURS.concat(["red","clear"]).join("|")+")\\b","g"),"").replace(/\(.*?\)/g,"").replace(/^\d+\s+/,"").replace(/\s+/g," ").trim()};
+  if(!isR){var A=((S.ref.assets&&S.ref.assets.items)||[]).map(function(a){return strip(a.name)});
+    var unk=ini.map(function(r){return r.item}).filter(function(n){if(!n)return false;var k=strip(n);return !A.some(function(a){return a===k||a.indexOf(k)>=0||k.indexOf(a)>=0})});
+    var needs=String(d.needs||"").toLowerCase();var unlisted=unk.filter(function(n){return needs.indexOf(strip(n))<0});
+    add(!unlisted.length,"Items not in the Asset Pool are listed as Needs",unlisted.join(", "),"warn")}
+  add(vlist(v,"start").length>=3&&vlist(v,"doing").length>=6&&vlist(v,"end").length>=3&&vlist(v,"scenarios").length>=3&&vlist(v,"mistakes").length>=3&&String(v.qcNever||"").trim(),"Variation Sheet complete (3 starts, 6 ways, 3 ends, 3 scenarios, 3 mistakes)",vlist(v,"start").length+"/"+vlist(v,"doing").length+"/"+vlist(v,"end").length+"/"+vlist(v,"scenarios").length+"/"+vlist(v,"mistakes").length);
+  if(!isR){var r=d.reverse||{};add(r.possible!==false||String(r.why||"").trim(),"Reset written, or the reason it is not")}
   return out;
 }
 function checkSummary(t){var c=t.checks||[];var bad=c.filter(function(x){return !x.ok&&x.level==="bad"}).length,warn=c.filter(function(x){return !x.ok&&x.level==="warn"}).length;return {bad:bad,warn:warn,n:c.length}}
@@ -418,157 +467,260 @@ function nextId(code){var max=0;S.tasks.forEach(function(t){var m=t.doc&&t.doc.i
 
 /* ---------- WRITE: batch ---------- */
 function fillCodeSelects(){var c=codes();var o=Object.keys(c).map(function(k){return '<option value="'+k+'">'+k+' · '+esc(c[k])+'</option>'}).join("");var b=$("b-code"),v=b.value;b.innerHTML='<option value="">Agent chooses</option>'+o;b.value=v||"";var g=$("brain-code"),gv=g.value;g.innerHTML=o;if(gv)g.value=gv;$("b-rules").textContent=S.rules?(S.rules.group+" v"+S.rules.version+", "+S.rules.rules.length+" rules"):"not loaded"}
-$("b-go").addEventListener("click",function(){
-  var lines=$("b-names").value.split(/\n+/).map(function(s){return s.trim()}).filter(Boolean);
-  if(!lines.length){toast("Paste at least one task name.");return}
+var OLDMAP={CL:"LID",KP:"PAK",TL:"TOL",PT:"TOL",CB:"CAB",WR:"PAK",LA:"SRT",LQ:"LIQ",LT:"LAB",HS:"HOM",BK:"HOM",RS:"FIX",SH:"CLO"};
+function words(s){return String(s||"").toLowerCase().replace(/^reset:\s*/,"").replace(/[^a-z0-9 ]+/g," ").split(/\s+/).filter(function(w){return w.length>2})}
+function sim(a,b){var A=words(a),B=words(b);if(!A.length||!B.length)return 0;var n=0;A.forEach(function(w){if(B.indexOf(w)>=0)n++});return n/Math.min(A.length,B.length)}
+function findOld(name,kind){var O=S.ref.oldtasks||{},best=null,bs=0;Object.keys(O).forEach(function(f){var x=O[f][kind==="R"?"rev":"fwd"];if(!x)return;var s=sim(name,x.name);if(s>bs){bs=s;best=f}});return bs>=0.7?best:null}
+function parseBatch(text){
+  var blocks=[],cur=null;
+  text.split(/\n/).forEach(function(line){var s=line.trim();if(!s)return;
+    var numbered=/^\d+\s*[.)]\s*/.test(s);s=s.replace(/^\d+\s*[.)]\s*/,"");
+    if(/^description\s*:?$/i.test(s))return;
+    var mo=s.match(/^([A-Z]{2}-\d{2})-([TR])(\d{2})\b\s*[:·.–-]?\s*(.*)$/),mn=s.match(/^([A-Z]{3}-\d{3})(R?)\b\s*[:·|–-]?\s*(.*)$/),mt=s.match(/^task name\s*:\s*(.*)$/i);
+    if(mo||mn||mt||numbered){cur={oldFam:mo?mo[1]:"",kind:mo?mo[2]:(mn&&mn[2]?"R":"T"),oldId:mo?mo[1]+"-"+mo[2]+mo[3]:"",given:mn?mn[1]:"",text:mo?mo[4]:mn?mn[3]:mt?mt[1]:s,details:[]};blocks.push(cur);return}
+    if(!cur)return;
+    if(s.split(/\s+/).length<=6&&!/[.!?:]$/.test(s))return;
+    cur.details.push(s)});
+  blocks.forEach(function(b){var t=b.text.trim(),m;
+    if((m=t.match(/\s*\((\d{1,4})\)\s*$/))){b.row=m[1];t=t.slice(0,m.index).trim()}
+    while((m=t.match(/\s*\(([^()]*[a-zA-Z][^()]*)\)\s*$/))&&m[1].split(/\s+/).length>=3){b.details.unshift(m[1]);t=t.slice(0,m.index).trim()}
+    if((m=t.match(/\s*\((\d{1,4})\)\s*$/))){b.row=m[1];t=t.slice(0,m.index).trim()}
+    var bar=t.indexOf("|");if(bar>=0){b.details.unshift(t.slice(bar+1).trim());t=t.slice(0,bar).trim()}
+    b.name=t.replace(/[.\s]+$/,"")});
+  /* old-sheet IDs: verify against the sheet, group forward and reset by family */
+  var fam={},out=[];
+  blocks.forEach(function(b){
+    if(!b.oldFam){out.push({name:b.name,details:b.details.join(" "),given:b.given,code:b.given?b.given.slice(0,3):"",from:"",warn:"",rows:b.row?[b.row]:[]});return}
+    var O=S.ref.oldtasks||{},f=b.oldFam,x=O[f]&&O[f][b.kind==="R"?"rev":"fwd"],warn="";
+    if(!x||sim(b.name,x.name)<0.7){var g=findOld(b.name,b.kind);if(g&&g!==f){warn=b.oldId+" is “"+(x?x.name:"not in the sheet")+"” in the sheet; your name matches "+g+"-"+b.kind+"01, so "+g+" is used.";f=g}else if(!x){warn=b.oldId+" is not in the master sheet; written as a new task.";f=""}else if(!g){warn=b.oldId+" in the sheet is “"+x.name+"”, which does not match your name; check it.";}}
+    if(!f){out.push({name:b.name,details:b.details.join(" "),given:"",code:"",from:b.oldId,warn:warn,rows:b.row?[b.row]:[]});return}
+    var e=fam[f];if(!e){e=fam[f]={fam:f,name:"",details:[],from:[],warn:[],rows:[],code:OLDMAP[f.slice(0,2)]||""};out.push(e)}
+    e.from.push(b.oldId);if(warn)e.warn.push(warn);if(b.row)e.rows.push(b.row);if(b.details.length)e.details=e.details.concat(b.details);
+    if(b.kind==="T"||!e.name){var fw=O[f]&&O[f].fwd;e.name=b.kind==="T"?b.name:(fw?fw.name:b.name.replace(/^reset:\s*/i,""))}});
+  return out.map(function(e){if(e.fam)return {name:e.name,details:e.details.join(" "),given:"",code:e.code,from:e.from.join(", "),oldFam:e.fam,warn:e.warn.join(" ")+(e.from.every(function(x){return /-R/.test(x)})?" Only the reset was listed; the new task always includes its reset.":""),rows:e.rows};return e});
+}
+var PARSED=[];
+$("b-read").addEventListener("click",function(){
+  var txt=$("b-names").value;if(!txt.trim()){toast("Paste your list first.");return}
+  PARSED=parseBatch(txt);if(!PARSED.length){toast("Nothing recognised. Put one task per line, or number them.");return}
+  var fixed=$("b-code").value;var saveRes=JSON.parse(JSON.stringify(reserved));
+  PARSED.forEach(function(e){e.code=e.code||fixed||"";e.newId=e.given||(e.code?nextId(e.code):"(agent picks)");var ex=S.tasks.filter(function(t){return t.doc&&((e.given&&t.doc.id===e.given)||(e.oldFam&&(t.oldFam===e.oldFam)))})[0];e.existing=ex?ex.id:"";if(ex){e.newId=ex.doc.id;e.warn=(e.warn?e.warn+" ":"")+"Already written as "+ex.doc.id+"; writing again replaces it."}});
+  reserved=saveRes;
+  $("b-prog").innerHTML='<div class="item-top"><b>'+PARSED.length+' tasks understood</b><button class="btn primary small" id="b-go">Write ticked</button></div><div class="tbl"><table><thead><tr><th></th><th>New ID</th><th>Task</th></tr></thead><tbody>'+PARSED.map(function(e,i){return '<tr><td><input type="checkbox" checked data-pi="'+i+'" aria-label="Write this one"></td><td class="mono">'+esc(e.newId)+(e.from?'<div class="small muted">from '+esc(e.from)+'</div>':"")+(e.rows&&e.rows.length?'<div class="small muted">row '+esc(e.rows.join(", "))+'</div>':"")+'</td><td><b>'+esc(e.name)+'</b>'+(e.details?'<div class="small muted">'+esc(e.details.length>220?e.details.slice(0,220)+"…":e.details)+'</div>':"")+(e.warn?'<div class="small" style="color:var(--warn)">'+esc(e.warn)+'</div>':"")+'</td></tr>'}).join("")+'</tbody></table></div>';
+  $("b-go").onclick=runBatch;
+});
+function oldText(f){var o=(S.ref.oldtasks||{})[f];if(!o)return "";var w=o.fwd||{},r=o.rev||{};return "This task rewrites old workbook family "+f+" ("+(w.id||"")+(r.id?" and "+r.id:"")+"). Keep the same job, the same real items and the same purpose. Rewrite it completely under the new rules: no fixed zones, no fixed poses, no method, start zones as lists, the reset written to the new reverse rule. Use the old text only to understand the job; do not copy its wording.\nOLD FORWARD\nName: "+w.name+"\nInstruction: "+w.instruction+"\nSteps: "+w.steps+"\nItems: "+w.items+"\nSetup notes: "+w.setup+"\nNeeds: "+w.needs+(r.id?"\nOLD RESET\nName: "+r.name+"\nInstruction: "+r.instruction+"\nSteps: "+r.steps:"")}
+function runBatch(){
+  var picked=[];$("b-prog").querySelectorAll("[data-pi]").forEach(function(c){if(c.checked)picked.push(PARSED[+c.dataset.pi])});
+  if(!picked.length){toast("Tick at least one task.");return}
   if(!S.rules){toast("The rules have not loaded yet.");return}
   if(!S.sample){toast("Claude is not available here.");return}
-  var code=$("b-code").value,bunch=$("b-bunch").value.trim();S.stop=false;$("b-go").disabled=true;$("b-stop").hidden=false;
-  var prog=$("b-prog");prog.innerHTML=lines.map(function(l,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(l.split("|")[0].trim())+'</span><span class="pill">Waiting</span></div>'}).join("");
-  var i=0;
+  var bunch=$("b-bunch").value.trim();S.stop=false;$("b-read").disabled=true;$("b-stop").hidden=false;
+  var prog=$("b-prog");prog.innerHTML=picked.map(function(e,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(e.name)+(e.from?' <span class="small muted">('+esc(e.from)+')</span>':"")+'</span><span class="pill">Waiting</span></div>'}).join("");
   function setP(i,html){var el=$("bp-"+i);if(el)el.lastChild.outerHTML=html}
+  var i=0;
   function nextOne(){
-    if(i>=lines.length||S.stop){$("b-go").disabled=false;$("b-stop").hidden=true;toast(S.stop?"Stopped.":"All written. Open each task to review.");return}
-    var raw=lines[i],idx=i,given="";var m=raw.match(/^\s*([A-Z]{3}-\d{3})\s*(?:[·|:–-]\s*)?(.*)$/);if(m){given=m[1];raw=m[2]}
-    var parts=raw.split("|"),name=parts[0].trim(),notes=parts.slice(1).join("|").trim();
-    setP(idx,'<span class="pill info"><span class="spin"></span> Writing</span>');
-    var ex=given?S.tasks.filter(function(x){return x.doc&&x.doc.id===given})[0]:null;writeOne(ex||null,name,notes,given?given.slice(0,3):code,bunch,null,given).then(function(t){var s=checkSummary(t);setP(idx,'<span class="row"><button class="btn small" data-open="'+t.id+'">'+esc(t.doc.id)+'</button><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"All checks pass")+'</span></span>');bindOpen(prog)})
-    .catch(function(e){setP(idx,'<span class="pill bad">'+esc((e&&e.message)||"Failed")+'</span>')})
+    if(i>=picked.length||S.stop){$("b-read").disabled=false;$("b-stop").hidden=true;toast(S.stop?"Stopped.":"All written. Open each task to review.");return}
+    var e=picked[i],idx=i;setP(idx,'<span class="pill info"><span class="spin"></span> <span id="bps-'+idx+'">Writing</span></span>');
+    var ex=e.existing?S.tasks.filter(function(t){return t.id===e.existing})[0]:null;
+    var given=e.given||(ex&&ex.doc?ex.doc.id:"");
+    writeOne(ex||null,e.name,e.details,given?given.slice(0,3):e.code,bunch,e.oldFam?oldText(e.oldFam):null,given,{oldFam:e.oldFam||"",oldIds:e.from||"",sheetRows:(e.rows||[]).join(", ")},function(s){var x=$("bps-"+idx);if(x)x.textContent=s}).then(function(t){var s=checkSummary(t);var good=t.status!=="review";setP(idx,'<span class="row"><button class="btn small" data-open="'+t.id+'">'+esc(t.doc.id)+'</button><span class="pill '+(good?(s.warn?"warn":"ok"):"bad")+'">'+(good?(s.warn?"Ready, "+s.warn+" to look at":"Ready"):"Needs review")+'</span>'+(t._rev?'<span class="pill">+ '+esc(t.doc.id)+'R</span>':'<span class="pill">no reset</span>')+'</span>');bindOpen(prog)})
+    .catch(function(err){setP(idx,'<span class="pill bad">'+esc((err&&err.message)||"Failed")+'</span>')})
     .then(function(){i++;nextOne()});
   }
   nextOne();
-});
+}
+$("w-all").addEventListener("click",function(){var b=this;if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Rewrite all? Press again";setTimeout(function(){b.dataset.sure="";b.textContent="Rewrite all under current rules"},4000);return}b.dataset.sure="";b.textContent="Rewrite all under current rules";rewriteAll()});
 $("b-stop").addEventListener("click",function(){S.stop=true;toast("Will stop after the current task.")});
-function writeOne(existing,name,notes,code,bunch,extra,givenId){
-  return ask(writerPrompt(name,notes,code||(existing&&existing.doc&&existing.doc.code)||"",extra),{json:true,tier:"complex"}).then(function(r){
+function strArr(a){return (Array.isArray(a)?a:arr(a)).map(function(s){return String(s).replace(/^\s*\d+[.)]\s*/,"").trim()}).filter(Boolean)}
+function normRows(rows,isTarget){return (rows||[]).map(function(x){if(typeof x==="string"){var p=x.split(":");return {item:(p[0]||"").trim(),how:(p.slice(1).join(":")||"").trim(),zones:[],place:"",role:"moves"}}
+  var place=String(x.place||"").trim();var zs=(x.zones||[]).map(zclean).filter(Boolean);
+  if(/where it started/i.test(zs.join(" "))){place=place||"where it started";zs=[]}
+  return {item:String(x.item||"").trim(),how:String(x.how||(isTarget?"":"any way")).trim(),zones:zs,place:place,role:x.role||"moves"}})}
+function normVar(v){v=v||{};return {start:strArr(v.start),doing:strArr(v.doing),end:strArr(v.end),scenarios:strArr(v.scenarios),qcNever:String(v.qcNever||"").trim(),mistakes:strArr(v.mistakes)}}
+function normalize(r){
+  var d={name:String(r.name||"").trim(),instruction:String(r.instruction||"").trim(),initial:normRows(r.initial,false),steps:strArr(r.steps),target:normRows(r.target,true),free:String(r.free||"").trim(),qc:strArr(r.qc),pass:String(r.pass||"").trim(),fail:String(r.fail||"").trim(),realTools:String(r.realTools||"").trim(),needs:String(r.needs||"None").trim(),usesUp:String(r.usesUp||"None").trim(),rigTest:String(r.rigTest||"").trim(),platformRisk:String(r.platformRisk||"None").trim(),variation:normVar(r.variation)};
+  var rv=r.reverse||{};d.reverse={possible:rv.possible!==false,why:String(rv.why||"").trim()};
+  d._rev=rv.possible===false?null:{name:String(rv.name||("Reset: "+d.name)).trim(),instruction:String(rv.instruction||"").trim(),steps:strArr(rv.steps),target:normRows(rv.target,true),free:String(rv.free||"").trim(),qc:strArr(rv.qc),pass:String(rv.pass||"").trim(),fail:String(rv.fail||"").trim(),variation:normVar(rv.variation)};
+  return d;
+}
+function revFrom(d){var r=d._rev;if(!r)return null;
+  var ini=(d.target||[]).map(function(t){var src=(d.initial||[]).filter(function(i){return nm(i.item)===nm(t.item)})[0];return {item:t.item,how:t.how,zones:(t.zones||[]).slice(),place:t.place||"",role:src?src.role:"moves"}});
+  return {isReverse:true,forwardId:d.id,code:d.code,id:d.id+"R",bunch:(d.bunch||"").replace(/^(.*?\d{2})( ·)/,"$1R$2"),name:r.name||("Reset: "+d.name),instruction:r.instruction,initial:ini,steps:r.steps,target:r.target,free:r.free,qc:r.qc,pass:r.pass,fail:r.fail,realTools:d.realTools,needs:d.needs,usesUp:d.usesUp,rigTest:d.rigTest,platformRisk:"",variation:r.variation};
+}
+function failList(c,withWarn){return c.filter(function(x){return !x.ok&&(withWarn||x.level==="bad")})}
+function writeOne(existing,name,notes,code,bunch,extra,givenId,meta,onStage){
+  var stage=onStage||function(){};
+  var attempt=0,maxTries=3,lastDraft=null,lastFails=[];
+  function once(xtra){attempt++;stage(attempt===1?"Writing":"Fixing ("+attempt+")");return ask(writerPrompt(name,notes,code||(existing&&existing.doc&&existing.doc.code)||"",xtra),{json:true,tier:"complex"})}
+  function build(r){
     var c=codes();var cd=(code||r.code||"").toUpperCase();if(!givenId&&!c[cd])cd=Object.keys(c)[0];
     var d=normalize(r);d.code=cd;
-    d.id=givenId||((existing&&existing.doc&&existing.doc.code===cd)?existing.doc.id:nextId(cd));if(givenId){var gm=givenId.match(/^([A-Z]{3})-(\d{3})$/);if(gm)reserved[gm[1]]=Math.max(reserved[gm[1]]||0,+gm[2])}
+    d.id=givenId||((existing&&existing.doc&&existing.doc.code===cd)?existing.doc.id:nextId(cd));
+    var selfId=existing?existing.id:null;var clash=function(id){return S.tasks.some(function(x){return x.doc&&!x.doc.isReverse&&x.doc.id===id&&x.id!==selfId})};
+    if(!givenId){var guard=0;while(clash(d.id)&&guard++<50)d.id=nextId(cd)}
+    if(givenId){var gm=givenId.match(/^([A-Z]{3})-(\d{3})$/);if(gm)reserved[gm[1]]=Math.max(reserved[gm[1]]||0,+gm[2])}
     d.bunch=bunch||(existing&&existing.doc&&existing.doc.bunch)||(c[cd]+" 01 · "+d.name);
-    var t=existing?Object.assign({},existing):{id:uid(),status:"described",source:"Write"};
-    t.name=d.name;t.doc=d;t.status="described";t.rulesVersion=S.rulesVer;t.checks=checkDoc(d);
+    var rd=revFrom(d);delete d._rev;
+    return {d:d,rd:rd,cf:checkDoc(d),cr:rd?checkDoc(rd):[]};
+  }
+  function loop(xtra){
+    return once(xtra).then(function(r){
+      var b=build(r);lastDraft=b;
+      var f=failList(b.cf,true).map(function(x){return "Task: "+x.name+(x.note?" ("+x.note+")":"")}).concat(failList(b.cr,true).map(function(x){return "Reset: "+x.name+(x.note?" ("+x.note+")":"")}));
+      var badLeft=failList(b.cf,false).length+failList(b.cr,false).length;lastFails=f;
+      if(!f.length||attempt>=maxTries)return b;
+      var fixNote="YOUR LAST DRAFT\n"+JSON.stringify(r)+"\n\nIt fails these checks. Fix every one of them and keep everything else the same:\n- "+f.join("\n- ")+(badLeft?"":"\n(Only warnings are left: fix them, or keep a colour or position word only when the job truly needs it.)");
+      return loop((extra?extra+"\n\n":"")+fixNote);
+    });
+  }
+  return loop(extra).then(function(b){
+    var d=b.d,rd=b.rd;
+    var fwdBad=failList(b.cf,false).length,revBad=rd?failList(b.cr,false).length:0;
+    var status=(fwdBad||revBad)?"review":"described";
+    var t=existing?Object.assign({},existing):{id:uid(),source:"Write"};
+    t.name=d.name;t.doc=d;t.status=status;t.rulesVersion=S.rulesVer;t.checks=b.cf;t.attempts=attempt;
+    if(meta){if(meta.oldFam)t.oldFam=meta.oldFam;if(meta.oldIds)t.oldIds=meta.oldIds;if(meta.sheetRows)t.sheetRows=meta.sheetRows}
     if(!existing&&!S.tasks.some(function(x){return x.id===t.id}))S.tasks.push(t);
-    return save("tasks",t.id,stamp(clean(t),!existing)).then(function(){return t});
+    var revRec=S.tasks.filter(function(x){return x.doc&&x.doc.isReverse&&x.forwardRec===t.id})[0];
+    var saves=[save("tasks",t.id,stamp(clean(t),!existing))];
+    if(rd){var rr=revRec?Object.assign({},revRec):{id:t.id+"r",source:t.source||"Write"};rr.forwardRec=t.id;rr.name=rd.name;rr.doc=rd;rr.status=status;rr.rulesVersion=S.rulesVer;rr.checks=b.cr;if(t.oldIds)rr.oldIds=t.oldIds;
+      if(!S.tasks.some(function(x){return x.id===rr.id}))S.tasks.push(rr);saves.push(save("tasks",rr.id,stamp(clean(rr),!revRec)))}
+    else if(revRec){saves.push(del("tasks",revRec.id))}
+    return Promise.all(saves).then(function(){t._rev=!!rd;t._revBad=revBad;return t});
   });
-}
-function normalize(r){
-  var d={name:String(r.name||"").trim(),instruction:String(r.instruction||"").trim(),initial:(r.initial||[]).map(function(x){return {item:String(x.item||"").trim(),how:String(x.how||"any way").trim(),zones:(x.zones||[]).map(zclean),role:x.role||"moves"}}),
-    steps:(r.steps||[]).map(String),target:(r.target||[]).map(String),free:String(r.free||""),qc:(r.qc||[]).map(String),pass:String(r.pass||""),fail:String(r.fail||""),realTools:String(r.realTools||""),needs:String(r.needs||"None"),usesUp:String(r.usesUp||"None"),rigTest:String(r.rigTest||""),platformRisk:String(r.platformRisk||"None"),
-    reverse:Object.assign({possible:true,why:"",instruction:"",steps:[],target:[],qc:[],pass:"",fail:""},r.reverse||{}),variation:Object.assign({start:"",doing:"",end:"",qcNever:"",mistakes:""},r.variation||{})};
-  d.steps=d.steps.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});d.qc=d.qc.map(function(s){return s.replace(/^\s*\d+[.)]\s*/,"")});
-  d.reverse.steps=(d.reverse.steps||[]).map(function(s){return String(s).replace(/^\s*\d+[.)]\s*/,"")});d.reverse.qc=(d.reverse.qc||[]).map(function(s){return String(s).replace(/^\s*\d+[.)]\s*/,"")});
-  return d;
 }
 
 /* ---------- WRITE: list and document ---------- */
-function written(){return S.tasks.filter(function(t){return t.doc})}
+function written(){return S.tasks.filter(function(t){return t.doc&&!t.doc.isReverse})}
+function allRows(){return S.tasks.filter(function(t){return t.doc})}
+function revOf(t){return S.tasks.filter(function(x){return x.doc&&x.doc.isReverse&&x.forwardRec===t.id})[0]}
 function renderWriteList(){
   var q=$("w-q").value.trim().toLowerCase(),f=$("w-filter").value;
-  var L=written().filter(function(t){var s=checkSummary(t);if(f==="fail"&&!s.bad)return false;if(f==="stale"&&!stale(t))return false;if(f==="mine"&&t.addedBy!==S.uid)return false;return !q||(t.doc.id+" "+t.doc.name).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)});
-  $("w-count").textContent=written().length+" written · "+L.length+" shown";
+  var L=written().filter(function(t){var s=checkSummary(t);var r=revOf(t),rs=r?checkSummary(r):{bad:0};if(f==="fail"&&!s.bad&&!rs.bad&&t.status!=="review")return false;if(f==="stale"&&!stale(t))return false;if(f==="mine"&&t.addedBy!==S.uid)return false;return !q||(t.doc.id+" "+t.doc.name).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)});
+  var nR=allRows().length-written().length;
+  $("w-count").textContent=written().length+" tasks + "+nR+" resets";
   $("nc-write").textContent=written().length||"";
   if(!L.length){$("w-list").innerHTML='<div class="empty">'+(written().length?"No match.":"Nothing written yet. Paste task names above.")+'</div>';return}
-  $("w-list").innerHTML='<div class="tbl"><table><thead><tr><th>ID</th><th>Task</th><th>Checks</th><th>Rules</th><th>Status</th><th></th></tr></thead><tbody>'+L.map(function(t){var s=checkSummary(t);return '<tr><td class="mono">'+esc(t.doc.id)+'</td><td><b>'+esc(t.doc.name)+'</b><div class="small muted">'+esc(t.doc.bunch||"")+'</div></td><td><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?s.warn+" to look at":"Pass")+'</span></td><td>'+(stale(t)?'<span class="pill warn">v'+esc(t.rulesVersion)+' (older)</span>':'<span class="pill">v'+esc(t.rulesVersion||"?")+'</span>')+'</td><td><span class="pill">'+esc(t.status)+'</span></td><td><button class="btn small" data-open="'+t.id+'">Open</button></td></tr>'}).join("")+'</tbody></table></div>';
+  function row(t,isR){var s=checkSummary(t);var cls=(s.bad||t.status==="review")?"bad":s.warn?"warn":"ok";return '<button class="trow" data-open="'+t.id+'" aria-current="'+(t.id===S.openId)+'"'+(isR?' style="margin-left:22px"':'')+' title="'+(s.bad?s.bad+" failing checks":s.warn?s.warn+" to look at":"All checks pass")+'"><span class="sdot '+cls+'"></span><span><span class="id">'+esc(t.doc.id)+(stale(t)?' · older rules':'')+'</span><br><span class="nm">'+esc(isR?t.doc.name.replace(/^Reset:\s*/,"↺ "):t.doc.name)+'</span></span><span class="pill'+(t.status==="review"?" bad":"")+'">'+esc(t.status==="described"?"ready":t.status==="review"?"needs review":t.status)+'</span></button>'}
+  $("w-list").innerHTML=L.map(function(t){var r=revOf(t);return row(t,false)+(r?row(r,true):"")}).join("");
   bindOpen($("w-list"));
 }
 function bindOpen(root){root.querySelectorAll("[data-open]").forEach(function(b){b.onclick=function(){openTask(b.dataset.open)}})}
 $("w-q").addEventListener("input",renderWriteList);$("w-filter").addEventListener("change",renderWriteList);
-function openTask(id){S.openId=id;S.editing=false;show("write");renderDoc();setTimeout(function(){var el=$("w-doc");if(el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
+function openTask(id){S.openId=id;S.editing=false;show("write");renderDoc();renderWriteList();setTimeout(function(){var el=$("w-doc");if(el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"})},50)}
 function T(){return S.tasks.filter(function(t){return t.id===S.openId})[0]}
 var ZNUM={"Supply":1,"Tool":2,"Used Equipment":3,"Staging":4,"Operation":5,"Finished Goods":6};function zl(z){return (z||[]).map(function(x){return ZNUM[x]?x+" ("+ZNUM[x]+")":x}).join(" / ")}
 function zclean(z){return String(z).replace(/\(\s*\d\s*\)/g,"").replace(/\s*Zone\b.*$/i,"").trim()}
 function roleTag(r){return r==="stays"?" (stays in place)":r==="not used"?" (not used)":""}
+function whereTxt(r,isEnd,startRow){if(r.place)return r.place;var s=zl(r.zones);if(isEnd&&startRow&&startRow.role==="moves")s+=", not its start zone";return s}
+function tableHTML(rows,isEnd,initial){return '<div class="tbl"><table><thead><tr><th>Item</th><th>'+(isEnd?"How it ends":"How it starts")+'</th><th>'+(isEnd?"End zones":"Start zones")+'</th></tr></thead><tbody>'+(rows||[]).map(function(r){if(typeof r==="string")return '<tr><td colspan="3">'+esc(r)+'</td></tr>';var src=isEnd?(initial||[]).filter(function(i){return nm(i.item)===nm(r.item)})[0]:null;return '<tr><td>'+esc(r.item+(isEnd?"":roleTag(r.role)))+'</td><td>'+esc(r.how)+'</td><td>'+esc(whereTxt(r,isEnd,src))+'</td></tr>'}).join("")+'</tbody></table></div>'}
+function ul(a){return '<ul class="small">'+vlist({x:a},"x").map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul>'}
 function docHTML(d){
-  var h='<div class="tid">'+esc(d.id)+' · '+esc(d.bunch||"")+'</div><h2>'+esc(d.name)+'</h2>';
+  var h='<div class="tid">'+esc(d.id)+' · '+esc(d.bunch||"")+(d.isReverse?' · reset of '+esc(d.forwardId):"")+'</div><h2>'+esc(d.name)+'</h2>';
   h+='<div><h3 class="sec">Instruction</h3><p>'+esc(d.instruction)+'</p></div>';
-  h+='<div><h3 class="sec">Initial State</h3><div class="tbl"><table><thead><tr><th>Item</th><th>How it starts</th><th>Start zones</th></tr></thead><tbody>'+(d.initial||[]).map(function(r){return '<tr><td>'+esc(r.item+roleTag(r.role))+'</td><td>'+esc(r.how)+'</td><td>'+esc(zl(r.zones))+'</td></tr>'}).join("")+'</tbody></table></div></div>';
+  h+='<div><h3 class="sec">Initial State</h3>'+tableHTML(d.initial,false)+'</div>';
   h+='<div><h3 class="sec">Steps</h3><ol>'+(d.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol></div>';
-  h+='<div><h3 class="sec">Target State</h3><ul>'+(d.target||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul><p class="small" style="margin-top:6px"><b>Free:</b> '+esc(d.free)+'</p></div>';
+  h+='<div><h3 class="sec">Target State</h3>'+tableHTML(d.target,true,d.initial)+'<p class="small" style="margin-top:8px"><b>Free:</b> '+esc(d.free)+'</p></div>';
   h+='<div class="grid2"><div><h3 class="sec">QC check</h3><ol>'+(d.qc||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol></div><div><h3 class="sec">Pass</h3><p>'+esc(d.pass)+'</p><h3 class="sec" style="margin-top:10px">Fail</h3><p>'+esc(d.fail)+'</p></div></div>';
-  h+='<div><h3 class="sec">Notes</h3><ul class="small"><li><b>Real tools:</b> '+esc(d.realTools)+'</li><li><b>Needs:</b> '+esc(d.needs)+'</li><li><b>Uses up:</b> '+esc(d.usesUp)+'</li><li><b>Rig test first:</b> '+esc(d.rigTest)+'</li>'+(d.platformRisk&&d.platformRisk!=="None"?'<li><b>Platform:</b> '+esc(d.platformRisk)+'</li>':"")+'</ul></div>';
-  var r=d.reverse||{};
-  h+='<div><h3 class="sec">Reverse · '+esc(d.id)+'R</h3>'+(r.possible===false?'<p>No reverse. '+esc(r.why)+'</p>':'<p>'+esc(r.instruction)+'</p><div class="grid2" style="margin-top:8px"><div><b class="small">Steps</b><ol class="small">'+(r.steps||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><b class="small">Target State</b><ul class="small">'+(r.target||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ul></div><div><b class="small">QC check</b><ol class="small">'+(r.qc||[]).map(function(s){return '<li>'+esc(s)+'</li>'}).join("")+'</ol><p class="small"><b>Pass:</b> '+esc(r.pass)+'</p><p class="small"><b>Fail:</b> '+esc(r.fail)+'</p></div></div>')+'</div>';
+  h+='<div><h3 class="sec">Notes</h3><ul class="small"><li><b>Real tools:</b> '+esc(d.realTools)+'</li><li><b>Needs:</b> '+esc(d.needs)+'</li><li><b>Uses up:</b> '+esc(d.usesUp)+'</li><li><b>Rig test first:</b> '+esc(d.rigTest)+'</li>'+(!d.isReverse&&d.reverse&&d.reverse.possible===false?'<li><b>No reset:</b> '+esc(d.reverse.why)+'</li>':"")+(d.platformRisk&&d.platformRisk!=="None"?'<li><b>Platform:</b> '+esc(d.platformRisk)+'</li>':"")+'</ul></div>';
   var v=d.variation||{};
-  h+='<div class="vsheet"><b>VARIATION SHEET · '+esc((d.code||"")+" · "+(d.name||"").toUpperCase())+'</b><p class="small"><b>Start:</b> '+esc(v.start)+'</p><p class="small"><b>Doing it:</b> '+esc(v.doing)+'</p><p class="small"><b>End:</b> '+esc(v.end)+'</p><p class="small"><b>Zone runs:</b> 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.</p><p class="small"><b>QC never judges:</b> '+esc(v.qcNever)+'</p><p class="small"><b>Common mistakes:</b> '+esc(v.mistakes)+'</p><p class="small"><b>If something goes wrong:</b> if an item is dropped, stop, set up a valid start again and record again.</p></div>';
+  if(typeof v.doing==="string"){h+='<div class="vsheet"><b>VARIATION SHEET</b><p class="small">'+esc(v.start)+'</p><p class="small">'+esc(v.doing)+'</p><p class="small">'+esc(v.end)+'</p></div>';return h}
+  h+='<div class="vsheet"><b>VARIATION SHEET · '+esc(d.id)+' · '+esc((d.name||"").toUpperCase())+'</b><div class="grid2"><div><b class="small">Ways to start</b>'+ul(v.start)+'<b class="small">Ways to do the job</b>'+ul(v.doing)+'</div><div><b class="small">Ways to end</b>'+ul(v.end)+'<b class="small">Where this happens in real life</b>'+ul(v.scenarios)+'<b class="small">Common mistakes</b>'+ul(v.mistakes)+'</div></div><p class="small"><b>Zone runs:</b> 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.</p><p class="small"><b>QC never judges:</b> '+esc(v.qcNever)+'</p><p class="small"><b>If something goes wrong:</b> if an item is dropped, stop, set up a valid start again and record again.</p></div>';
   return h;
 }
 function renderDoc(){
-  var t=T(),el=$("w-doc");if(!t||!t.doc){el.innerHTML="";return}
-  var c=t.checks||checkDoc(t.doc),s=checkSummary({checks:c});
-  var head='<div class="card"><div class="item-top"><div class="row"><span class="pill '+(s.bad?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?"Passes, "+s.warn+" to look at":"All "+c.length+" checks pass")+'</span>'+(stale(t)?'<span class="pill warn">Written under rules v'+esc(t.rulesVersion)+', now v'+esc(S.rulesVer)+'</span>':"")+'<span class="small muted" id="w-who"></span></div><div class="row">'+(S.editing?'<button class="btn primary" id="d-save">Save changes</button><button class="btn" id="d-cancel">Cancel</button>':'<button class="btn" id="d-edit">Edit</button><button class="btn" id="d-fix">Fix failing checks</button><button class="btn" id="d-rewrite">Rewrite</button><button class="btn" id="d-close">Close</button>')+'</div></div><details><summary class="small">Checks ('+c.length+')</summary><ul class="checks" style="margin-top:8px">'+c.map(function(x){return '<li class="'+x.level+'"><span class="i">'+(x.ok?"✓":x.level==="warn"?"!":"✕")+'</span><span>'+esc(x.name)+(x.note?' <span class="muted">· '+esc(x.note)+'</span>':"")+'</span></li>'}).join("")+'</ul></details><div id="d-stream"></div></div>';
+  var t=T(),el=$("w-doc");if(!t||!t.doc){el.innerHTML='<div class="empty-doc"><h3>No task open</h3><p>Pick a task on the left, or paste names and press Read my list.</p></div>';return}
+  var c=t.checks||checkDoc(t.doc),s=checkSummary({checks:c});var isR=!!t.doc.isReverse;
+  var head='<div class="card"><div class="item-top"><div class="row"><span class="pill '+(s.bad||t.status==="review"?"bad":s.warn?"warn":"ok")+'">'+(s.bad?s.bad+" failing":s.warn?"Passes, "+s.warn+" to look at":"All "+c.length+" checks pass")+'</span>'+(t.status==="review"?'<span class="pill bad">Needs review</span>':"")+(stale(t)?'<span class="pill warn">Written under rules v'+esc(t.rulesVersion)+', now v'+esc(S.rulesVer)+'</span>':"")+'<span class="small muted" id="w-who"></span></div><div class="row">'+(S.editing?'<button class="btn primary" id="d-save">Save changes</button><button class="btn" id="d-cancel">Cancel</button>':'<button class="btn" id="d-edit">Edit</button>'+(isR?'':'<button class="btn" id="d-rewrite">Rewrite task and reset</button>')+'<button class="btn" id="d-close">Close</button>')+'</div></div><details><summary class="small">Checks ('+c.length+')</summary><ul class="checks" style="margin-top:8px">'+c.map(function(x){return '<li class="'+x.level+'"><span class="i">'+(x.ok?"✓":x.level==="warn"?"!":"✕")+'</span><span>'+esc(x.name)+(x.note?' <span class="muted">· '+esc(x.note)+'</span>':"")+'</span></li>'}).join("")+'</ul></details><div id="d-stream"></div></div>';
   el.innerHTML=head+(S.editing?'<div class="card">'+editHTML(t.doc)+'</div>':'<div class="doc">'+docHTML(t.doc)+'</div>');
   whoLine(t);
-  if(S.editing){$("d-save").onclick=saveEdit;$("d-cancel").onclick=function(){S.editing=false;renderDoc()};el.querySelectorAll("[data-e]").forEach(function(x){x.addEventListener("input",liveCheck)})}
-  else{$("d-edit").onclick=function(){S.editing=true;renderDoc()};$("d-close").onclick=function(){S.openId=null;renderDoc()};$("d-fix").onclick=fixDoc;$("d-rewrite").onclick=function(){var b=this;if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Replace it? Press again";setTimeout(function(){b.dataset.sure="";b.textContent="Rewrite"},4000);return}var st=streamTo("d-stream");writeOne(t,t.doc.name,"",t.doc.code,t.doc.bunch).then(function(){st.done();toast("Rewritten under the current rules.");renderDoc()}).catch(function(e){aiErr($("d-stream"),e)})}}
+  if(S.editing){$("d-save").onclick=saveEdit;$("d-cancel").onclick=function(){S.editing=false;renderDoc()};el.querySelectorAll("[data-e]").forEach(function(x){x.addEventListener("input",liveCheck)});liveCheck()}
+  else{$("d-edit").onclick=function(){S.editing=true;renderDoc()};$("d-close").onclick=function(){S.openId=null;renderDoc();renderWriteList()};
+    var rw=$("d-rewrite");if(rw)rw.onclick=function(){var b=this;if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Replace both? Press again";setTimeout(function(){b.dataset.sure="";b.textContent="Rewrite task and reset"},4000);return}var st=$("d-stream");st.innerHTML='<div class="row small muted"><span class="spin"></span> <span id="d-stage">Writing</span></div>';rewriteOne(t,function(s){var e=$("d-stage");if(e)e.textContent=s}).then(function(){st.innerHTML="";toast("Rewritten under the current rules.");renderDoc()}).catch(function(e){aiErr(st,e)})}}
 }
-function whoLine(t){if(!S.user)return;var ids=[t.addedBy,t.editedBy].filter(Boolean);if(!ids.length)return;S.user.profiles(ids).then(function(ps){var el=$("w-who");if(!el)return;var a=t.addedBy&&ps[t.addedBy]?(ps[t.addedBy].name||"Someone"):"";var e=t.editedBy&&ps[t.editedBy]?(ps[t.editedBy].name||"Someone"):"";el.textContent=(a?"Added by "+a:"")+(e&&t.editedBy!==t.addedBy?" · last edit "+e:"")+(t.source==="Codex"?" · from Codex":"")})}
+function whoLine(t){if(!S.user)return;var ids=[t.addedBy,t.editedBy].filter(Boolean);if(!ids.length)return;S.user.profiles(ids).then(function(ps){var el=$("w-who");if(!el)return;var a=t.addedBy&&ps[t.addedBy]?(ps[t.addedBy].name||"Someone"):"";var e=t.editedBy&&ps[t.editedBy]?(ps[t.editedBy].name||"Someone"):"";el.textContent=(a?"Added by "+a:"")+(e&&t.editedBy!==t.addedBy?" · last edit "+e:"")+(t.source==="Codex"?" · from Codex":"")+(t.oldIds?" · from "+t.oldIds:"")+(t.attempts>1?" · fixed in "+t.attempts+" passes":"")})}
+function rowsTxt(rows,isEnd){return (rows||[]).map(function(x){if(typeof x==="string")return x;return [x.item,x.how,x.place||zl(x.zones)].concat(isEnd?[]:[x.role||"moves"]).join(" | ")}).join("\n")}
+function parseRows(txt,isEnd){return arr(txt).map(function(l){var p=l.split("|").map(function(s){return s.trim()});var w=p[2]||"";var place=/^(inside|where it started)/i.test(w)?w:"";return {item:p[0]||"",how:p[1]||(isEnd?"":"any way"),zones:place?[]:w.split("/").map(zclean).filter(Boolean),place:place,role:isEnd?undefined:(p[3]||"moves")}})}
 function editHTML(d){
-  var r=d.reverse||{},v=d.variation||{};
+  var v=d.variation||{};
   function ta(k,label,val,rows,wide){return '<label class="f'+(wide?" wide":"")+'">'+esc(label)+'<textarea data-e="'+k+'" rows="'+(rows||3)+'">'+esc(val)+'</textarea></label>'}
   function inp(k,label,val){return '<label class="f">'+esc(label)+'<input type="text" data-e="'+k+'" value="'+esc(val)+'"></label>'}
-  var ini=(d.initial||[]).map(function(x){return [x.item,x.how,zl(x.zones),x.role].join(" | ")}).join("\n");
-  return '<p class="small muted">One line per entry. Initial State lines: Item | How it starts | Zone / Zone | moves or stays or not used.</p><div class="editgrid">'+
-  inp("name","Task name",d.name)+inp("bunch","Bunch",d.bunch||"")+ta("instruction","Instruction",d.instruction,2,true)+ta("initial","Initial State",ini,5,true)+ta("steps","Steps",(d.steps||[]).join("\n"),6,true)+ta("target","Target State",(d.target||[]).join("\n"),4,true)+ta("free","Free",d.free,2,true)+ta("qc","QC check",(d.qc||[]).join("\n"),5)+'<div class="grid2" style="grid-column:auto">'+'</div>'+ta("pass","Pass",d.pass,3)+ta("fail","Fail",d.fail,3,true)+ta("realTools","Real tools",d.realTools,2)+ta("needs","Needs",d.needs,2)+ta("usesUp","Uses up",d.usesUp,2)+ta("rigTest","Rig test first",d.rigTest,2)+
-  '<label class="f">Reverse possible<select data-e="r.possible"><option value="yes"'+(r.possible!==false?" selected":"")+'>Yes</option><option value="no"'+(r.possible===false?" selected":"")+'>No</option></select></label>'+ta("r.why","If no reverse, why",r.why,2)+ta("r.instruction","Reverse instruction",r.instruction,2,true)+ta("r.steps","Reverse steps",(r.steps||[]).join("\n"),4,true)+ta("r.target","Reverse Target State",(r.target||[]).join("\n"),3)+ta("r.qc","Reverse QC",(r.qc||[]).join("\n"),3)+ta("r.pass","Reverse Pass",r.pass,2)+ta("r.fail","Reverse Fail",r.fail,2)+
-  ta("v.start","Variation: start",v.start,2)+ta("v.doing","Variation: doing it",v.doing,3)+ta("v.end","Variation: end",v.end,2)+ta("v.qcNever","Variation: QC never judges",v.qcNever,2)+ta("v.mistakes","Variation: common mistakes",v.mistakes,2,true)+'</div><div id="d-live"></div>';
+  function lines(a){return Array.isArray(a)?a.join("\n"):(a||"")}
+  return '<p class="small muted">One line per entry. Initial State: Item | How it starts | Zone / Zone | moves, stays or not used. Target State: Item | How it ends | Zone / Zone, or inside the …, or where it started.</p><div class="editgrid">'+
+  inp("name","Task name",d.name)+inp("bunch","Bunch",d.bunch||"")+ta("instruction","Instruction",d.instruction,2,true)+ta("initial","Initial State",rowsTxt(d.initial,false),5,true)+ta("steps","Steps",lines(d.steps),6,true)+ta("target","Target State",rowsTxt(d.target,true),5,true)+ta("free","Free",d.free,2,true)+ta("qc","QC check",lines(d.qc),5,true)+ta("pass","Pass",d.pass,2)+ta("fail","Fail",d.fail,3)+
+  (d.isReverse?"":ta("realTools","Real tools",d.realTools,2)+ta("needs","Needs",d.needs,2)+ta("usesUp","Uses up",d.usesUp,2)+ta("rigTest","Rig test first",d.rigTest,2))+
+  ta("v.start","Variation: ways to start",lines(v.start),3)+ta("v.doing","Variation: ways to do the job",lines(v.doing),5)+ta("v.end","Variation: ways to end",lines(v.end),3)+ta("v.scenarios","Variation: real-world scenarios",lines(v.scenarios),3)+ta("v.qcNever","Variation: QC never judges",v.qcNever,2)+ta("v.mistakes","Variation: common mistakes",lines(v.mistakes),3)+'</div><div id="d-live"></div>';
 }
 function readEdit(base){
-  var d=JSON.parse(JSON.stringify(base));var g=function(k){var el=document.querySelector('[data-e="'+k+'"]');return el?el.value:""};
+  var d=JSON.parse(JSON.stringify(base));var g=function(k){var el=document.querySelector('[data-e="'+k+'"]');return el?el.value:null};
   d.name=g("name").trim();d.bunch=g("bunch").trim();d.instruction=g("instruction").trim();
-  d.initial=arr(g("initial")).map(function(l){var p=l.split("|").map(function(s){return s.trim()});return {item:p[0]||"",how:p[1]||"any way",zones:(p[2]||"").split("/").map(zclean).filter(Boolean),role:p[3]||"moves"}});
-  d.steps=arr(g("steps"));d.target=arr(g("target"));d.free=g("free").trim();d.qc=arr(g("qc"));d.pass=g("pass").trim();d.fail=g("fail").trim();d.realTools=g("realTools").trim();d.needs=g("needs").trim();d.usesUp=g("usesUp").trim();d.rigTest=g("rigTest").trim();
-  d.reverse={possible:g("r.possible")!=="no",why:g("r.why").trim(),instruction:g("r.instruction").trim(),steps:arr(g("r.steps")),target:arr(g("r.target")),qc:arr(g("r.qc")),pass:g("r.pass").trim(),fail:g("r.fail").trim()};
-  d.variation={start:g("v.start").trim(),doing:g("v.doing").trim(),end:g("v.end").trim(),qcNever:g("v.qcNever").trim(),mistakes:g("v.mistakes").trim()};
+  d.initial=parseRows(g("initial"),false);d.steps=arr(g("steps"));d.target=parseRows(g("target"),true);d.free=g("free").trim();d.qc=arr(g("qc"));d.pass=g("pass").trim();d.fail=g("fail").trim();
+  if(g("realTools")!==null){d.realTools=g("realTools").trim();d.needs=g("needs").trim();d.usesUp=g("usesUp").trim();d.rigTest=g("rigTest").trim()}
+  d.variation={start:arr(g("v.start")),doing:arr(g("v.doing")),end:arr(g("v.end")),scenarios:arr(g("v.scenarios")),qcNever:g("v.qcNever").trim(),mistakes:arr(g("v.mistakes"))};
   return d;
 }
-function liveCheck(){var t=T();if(!t)return;var c=checkDoc(readEdit(t.doc));var bad=c.filter(function(x){return !x.ok&&x.level==="bad"});$("d-live").innerHTML=bad.length?'<div class="banner bad">'+bad.length+' failing: '+esc(bad.map(function(x){return x.name}).join("; "))+'</div>':'<div class="banner ok">All required checks pass.</div>'}
-function saveEdit(){var t=T();var d=readEdit(t.doc);var x=clean(t);x.doc=d;x.name=d.name;x.checks=checkDoc(d);x.rulesVersion=S.rulesVer;save("tasks",t.id,stamp(x)).then(function(){S.editing=false;toast("Saved")})}
-function fixDoc(){var t=T();var fails=(t.checks||checkDoc(t.doc)).filter(function(x){return !x.ok});if(!fails.length){toast("Nothing to fix.");return}var st=streamTo("d-stream");
-  var extra="CURRENT DRAFT\n"+JSON.stringify(t.doc)+"\n\nFIX ONLY THESE CHECKS and keep everything else word for word:\n- "+fails.map(function(f){return f.name+(f.note?" ("+f.note+")":"")}).join("\n- ");
-  writeOne(t,t.doc.name,"",t.doc.code,t.doc.bunch,extra).then(function(){st.done();toast("Fixed. Review it.");renderDoc()}).catch(function(e){aiErr($("d-stream"),e)})}
+function liveCheck(){var t=T();if(!t)return;var c=checkDoc(readEdit(t.doc));var bad=c.filter(function(x){return !x.ok&&x.level==="bad"});$("d-live").innerHTML=bad.length?'<div class="banner bad">'+bad.length+' failing: '+esc(bad.map(function(x){return x.name+(x.note?" ("+x.note+")":"")}).join("; "))+'. Saving keeps it as Needs review.</div>':'<div class="banner ok">All required checks pass.</div>'}
+function saveEdit(){var t=T();var d=readEdit(t.doc);var x=clean(t);x.doc=d;x.name=d.name;x.checks=checkDoc(d);x.rulesVersion=S.rulesVer;x.status=failList(x.checks,false).length?"review":(x.status==="review"?"described":x.status);save("tasks",t.id,stamp(x)).then(function(){S.editing=false;toast(x.status==="review"?"Saved, still needs review":"Saved")})}
+function rewriteOne(t,onStage){var extra="This rewrites task "+t.doc.id+" under the current rules. Keep the same job, the same real items and the same ID. Earlier version, for reference only:\n"+JSON.stringify(t.doc)+(t.oldFam?"\n\n"+oldText(t.oldFam):"");return writeOne(t,t.doc.name,"",t.doc.code,t.doc.bunch,extra,t.doc.id,null,onStage)}
+
+/* ---------- rewrite all ---------- */
+function rewriteAll(){
+  var L=written().sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)});
+  if(!L.length){toast("No tasks to rewrite.");return}
+  if(!S.sample){toast("Claude is not available here.");return}
+  S.stop=false;$("b-read").disabled=true;$("b-stop").hidden=false;$("w-all").disabled=true;
+  var prog=$("b-prog");prog.innerHTML='<div class="item-top"><b>Rewriting '+L.length+' tasks under rules v'+esc(S.rulesVer)+'</b></div>'+L.map(function(t,i){return '<div class="line" id="bp-'+i+'"><span>'+esc(t.doc.id+" · "+t.doc.name)+'</span><span class="pill">Waiting</span></div>'}).join("");
+  function setP(i,html){var el=$("bp-"+i);if(el)el.lastChild.outerHTML=html}
+  var i=0,ok=0,rev=0;
+  function next(){if(i>=L.length||S.stop){$("b-read").disabled=false;$("b-stop").hidden=true;$("w-all").disabled=false;toast(S.stop?"Stopped.":"Done: "+ok+" of "+L.length+" pass every check.");return}
+    var t=L[i],idx=i;setP(idx,'<span class="pill info"><span class="spin"></span> <span id="bps-'+idx+'">Writing</span></span>');
+    rewriteOne(t,function(s){var e=$("bps-"+idx);if(e)e.textContent=s}).then(function(n){var s=checkSummary(n);var good=n.status!=="review";if(good)ok++;setP(idx,'<span class="row"><button class="btn small" data-open="'+n.id+'">'+esc(n.doc.id)+'</button><span class="pill '+(good?(s.warn?"warn":"ok"):"bad")+'">'+(good?(s.warn?"Ready, "+s.warn+" to look at":"Ready"):"Needs review")+'</span>'+(n._rev?'<span class="pill">+ '+esc(n.doc.id)+'R</span>':'<span class="pill">no reset</span>')+'</span>');bindOpen(prog)})
+    .catch(function(e){setP(idx,'<span class="pill bad">'+esc((e&&e.message)||"Failed")+'</span>')}).then(function(){i++;next()})}
+  next();
+}
 
 /* ---------- export / import ---------- */
-function exportList(){var only=$("x-only-ok").checked;return written().filter(function(t){return !only||!checkSummary(t).bad}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)})}
-function iniTxt(d){return (d.initial||[]).map(function(r){return r.item+roleTag(r.role)+" | "+r.how+" | "+zl(r.zones)}).join("\n")}
+function exportRows(kind){var only=$("x-only-ok").checked;return allRows().filter(function(t){return (kind==="R")===!!t.doc.isReverse&&(!only||(t.status!=="review"&&!checkSummary(t).bad))}).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)})}
+function tableTxt(rows,isEnd,initial){return (rows||[]).map(function(r){if(typeof r==="string")return r;var src=isEnd?(initial||[]).filter(function(i){return nm(i.item)===nm(r.item)})[0]:null;return r.item+(isEnd?"":roleTag(r.role))+" | "+r.how+" | "+whereTxt(r,isEnd,src)}).join("\n")}
 function num(a){return (a||[]).map(function(s,i){return (i+1)+". "+s}).join("\n")}
-function vsTxt(d){var v=d.variation||{};return "Start: "+v.start+"\nDoing it: "+v.doing+"\nEnd: "+v.end+"\nZone runs: 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.\nQC never judges: "+v.qcNever+"\nCommon mistakes: "+v.mistakes+"\nIf something goes wrong: if an item is dropped, stop, set up a valid start again and record again."}
+function vsTxt(d){var v=d.variation||{};function L(a){return vlist({x:a},"x").map(function(s){return "- "+s}).join("\n")}return "Ways to start:\n"+L(v.start)+"\nWays to do the job:\n"+L(v.doing)+"\nWays to end:\n"+L(v.end)+"\nWhere this happens in real life:\n"+L(v.scenarios)+"\nZone runs: 5 to 10 episodes with the same start zones, then change zones for at least two items. Use every listed zone at least twice per 2-hour block.\nQC never judges: "+(v.qcNever||"")+"\nCommon mistakes:\n"+L(v.mistakes)+"\nIf something goes wrong: if an item is dropped, stop, set up a valid start again and record again."}
 function deliver(name,data,list,mark){if(!S.downloads){toast("Downloads are not available in this view.");return}S.downloads.save({filename:name,data:data}).then(function(){toast("Saved "+name);if(mark)list.forEach(function(t){if(t.status!=="exported"){var x=clean(t);x.status="exported";save("tasks",t.id,stamp(x))}})}).catch(function(e){toast(e&&e.code==="declined"?"Download cancelled.":"Could not download ("+(e&&e.code)+").")})}
 function dstamp(){return kigaliDay()}
-$("x-xlsx").addEventListener("click",function(){var L=exportList();if(!L.length){toast("No tasks to export.");return}if(!window.XLSX){toast("The Excel library did not load.");return}
-  var H=["Task ID","Bunch","Task Name","Instruction","Initial State (Item | How it starts | Start zones)","Steps","Target State","Free","QC Check","Pass","Fail","Real Tools","Needs","Uses Up","Rig Test First","Reverse ID","Rules Version","Status"];
-  var R=["Reverse ID","Forward ID","Bunch","Reset Name","Reverse Instruction","Steps","Target State","QC Check","Pass","Fail"];
-  var rows=L.map(function(t){var d=t.doc;return [d.id,d.bunch,d.name,d.instruction,iniTxt(d),num(d.steps),(d.target||[]).join("\n"),d.free,num(d.qc),d.pass,d.fail,d.realTools,d.needs,d.usesUp,d.rigTest,d.reverse&&d.reverse.possible===false?"None: "+d.reverse.why:d.id+"R","v"+(t.rulesVersion||""),"Ready"]});
-  var rrows=L.filter(function(t){return !(t.doc.reverse&&t.doc.reverse.possible===false)}).map(function(t){var d=t.doc,r=d.reverse||{};return [d.id+"R",d.id,(d.bunch||"").replace(/^(.*?\d{2})( ·)/,"$1R$2"),"Reset: "+d.name,r.instruction,num(r.steps),(r.target||[]).join("\n"),num(r.qc),r.pass,r.fail]});
-  var vrows=L.map(function(t){return [t.doc.id,t.doc.name,vsTxt(t.doc)]});
-  var wb=XLSX.utils.book_new();
+var XH=["Task ID","Old IDs","Bunch","Task Name","Instruction","Initial State (Item | How it starts | Start zones)","Steps","Target State (Item | How it ends | End zones)","Free","QC Check","Pass","Fail","Real Tools","Needs","Uses Up","Rig Test First","Reset ID","Rules Version","Status"];
+function xrow(t){var d=t.doc;var rv=d.isReverse?d.forwardId:(revOf(t)?d.id+"R":"None: "+((d.reverse&&d.reverse.why)||""));return [d.id,t.oldIds||"",d.bunch,d.name,d.instruction,tableTxt(d.initial,false),num(d.steps),tableTxt(d.target,true,d.initial),d.free,num(d.qc),d.pass,d.fail,d.realTools,d.needs,d.usesUp,d.rigTest,rv,"v"+(t.rulesVersion||""),t.status==="review"?"Needs review":"Ready"]}
+$("x-xlsx").addEventListener("click",function(){var F=exportRows("T"),R=exportRows("R");if(!F.length&&!R.length){toast("No tasks to export.");return}if(!window.XLSX){toast("The Excel library did not load.");return}
+  var wb=XLSX.utils.book_new();var W=[11,16,30,36,50,60,70,60,40,60,40,50,40,30,30,40,14,8,10];
   function sheet(h,rs,w){var s=XLSX.utils.aoa_to_sheet([h].concat(rs));s["!cols"]=h.map(function(c,i){return {wch:w[i]||40}});return s}
-  XLSX.utils.book_append_sheet(wb,sheet(H,rows,[11,30,36,50,50,60,50,40,50,40,50,40,30,30,40,12,10,8]),"Tasks");
-  XLSX.utils.book_append_sheet(wb,sheet(R,rrows,[12,11,30,40,50,60,50,50,40,50]),"Resets");
-  XLSX.utils.book_append_sheet(wb,sheet(["Task ID","Task","Variation Sheet"],vrows,[11,36,100]),"Variation Sheets");
+  var RH=XH.slice();RH[16]="Forward Task ID";
+  XLSX.utils.book_append_sheet(wb,sheet(XH,F.map(xrow),W),"Tasks");
+  XLSX.utils.book_append_sheet(wb,sheet(RH,R.map(xrow),W),"Resets");
+  XLSX.utils.book_append_sheet(wb,sheet(["Task ID","Task","Variation Sheet"],F.concat(R).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)}).map(function(t){return [t.doc.id,t.doc.name,vsTxt(t.doc)]}),[12,40,110]),"Variation Sheets");
   if(S.rules)XLSX.utils.book_append_sheet(wb,sheet(["No.","Section","Rule"],S.rules.rules.map(function(r){return [r.n,r.section,r.text]}),[6,22,120]),"Rules v"+S.rules.version);
-  deliver("Verlet_Tasks_"+dstamp()+".xlsx",new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})]),L,true)});
-$("x-md").addEventListener("click",function(){var L=exportList();if(!L.length){toast("No tasks to export.");return}
-  var md=L.map(function(t){var d=t.doc,r=d.reverse||{};return "# "+d.id+" · "+d.name+"\n\n"+(d.bunch?"*"+d.bunch+"*\n\n":"")+"**Instruction:** "+d.instruction+"\n\n**Initial State**\n\n| Item | How it starts | Start zones |\n|---|---|---|\n"+(d.initial||[]).map(function(x){return "| "+x.item+roleTag(x.role)+" | "+x.how+" | "+zl(x.zones)+" |"}).join("\n")+"\n\n**Steps**\n\n"+num(d.steps)+"\n\n**Target State**\n\n"+(d.target||[]).map(function(s){return "- "+s}).join("\n")+"\n\n**Free:** "+d.free+"\n\n**QC check**\n\n"+num(d.qc)+"\n\n**Pass:** "+d.pass+"\n\n**Fail:** "+d.fail+"\n\n**Notes:** Real tools: "+d.realTools+" · Needs: "+d.needs+" · Uses up: "+d.usesUp+" · Rig test first: "+d.rigTest+"\n\n## "+d.id+"R · Reset\n\n"+(r.possible===false?"No reverse. "+r.why:r.instruction+"\n\n"+num(r.steps)+"\n\n**Target State:** "+(r.target||[]).join(" ")+"\n\n**QC check**\n\n"+num(r.qc)+"\n\n**Pass:** "+r.pass+"\n\n**Fail:** "+r.fail)+"\n\n## Variation Sheet\n\n"+vsTxt(d).split("\n").map(function(s){return "- "+s}).join("\n")}).join("\n\n---\n\n");
+  deliver("Verlet_Tasks_"+dstamp()+".xlsx",new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})]),F.concat(R),true)});
+$("x-md").addEventListener("click",function(){var L=exportRows("T").concat(exportRows("R")).sort(function(a,b){return a.doc.id.localeCompare(b.doc.id)});if(!L.length){toast("No tasks to export.");return}
+  function mdT(rows,isEnd,ini){return "| Item | "+(isEnd?"How it ends | End zones":"How it starts | Start zones")+" |\n|---|---|---|\n"+tableTxt(rows,isEnd,ini).split("\n").map(function(l){return "| "+l+" |"}).join("\n")}
+  var md=L.map(function(t){var d=t.doc;return "# "+d.id+" · "+d.name+"\n\n"+(d.bunch?"*"+d.bunch+"*\n\n":"")+"**Instruction:** "+d.instruction+"\n\n**Initial State**\n\n"+mdT(d.initial,false)+"\n\n**Steps**\n\n"+num(d.steps)+"\n\n**Target State**\n\n"+mdT(d.target,true,d.initial)+"\n\n**Free:** "+d.free+"\n\n**QC check**\n\n"+num(d.qc)+"\n\n**Pass:** "+d.pass+"\n\n**Fail:** "+d.fail+"\n\n**Notes:** Real tools: "+d.realTools+" · Needs: "+d.needs+" · Uses up: "+d.usesUp+" · Rig test first: "+d.rigTest+"\n\n## Variation Sheet\n\n"+vsTxt(d)}).join("\n\n---\n\n");
   deliver("Verlet_Task_Cards_"+dstamp()+".md",md,L,false)});
-$("x-json").addEventListener("click",function(){var L=exportList();
+$("x-json").addEventListener("click",function(){var L=exportRows("T").concat(exportRows("R"));
   var week=S.news.filter(function(n){return (n.date||"")>=kigaliDay(new Date(Date.now()-7*864e5))});
-  var payload={format:"verlet-agent-v2",exportedAt:now(),readMe:"Written by the Verlet Task Agent. Codex: edit tasks in place or add new ones in the same shape, keep each 'appId' so the app updates the same task, then save as JSON and load it with 'Import from Codex'. Follow rules exactly.",rules:S.rules,tasks:L.map(function(t){return Object.assign({appId:t.id,status:t.status,rulesVersion:t.rulesVersion},t.doc)}),confirmedNames:S.tasks.filter(function(t){return t.status==="confirmed"}).map(function(t){return {appId:t.id,name:t.name,category:t.category||"",notes:t.summary||""}}),news:week};
+  var payload={format:"verlet-agent-v3",exportedAt:now(),readMe:"Written by the Verlet Task Agent. Each task and each reset is its own entry (resets have isReverse true and forwardId). Codex: edit entries in place or add new ones in the same shape, keep each appId, follow the rules exactly, then load the file with Import from Codex.",rules:S.rules,tasks:L.map(function(t){return Object.assign({appId:t.id,status:t.status,rulesVersion:t.rulesVersion,forwardRec:t.forwardRec||""},t.doc)}),confirmedNames:S.tasks.filter(function(t){return t.status==="confirmed"}).map(function(t){return {appId:t.id,name:t.name,category:t.category||"",notes:t.summary||""}}),news:week};
   deliver("verlet-agent-export_"+dstamp()+".json",JSON.stringify(payload,null,2),[],false)});
 $("x-import").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;f.text().then(function(txt){var j;try{j=JSON.parse(txt)}catch(e){toast("That file is not valid JSON.");return}
   var list=Array.isArray(j)?j:(j.tasks||[]);if(!list.length){toast("No tasks found in the file.");return}
-  var n=0,errs=0;var chain=Promise.resolve();
-  list.forEach(function(x){chain=chain.then(function(){var d=normalize(x);d.code=(x.code||"").toUpperCase();d.id=x.id||"";d.bunch=x.bunch||"";
+  var n=0,errs=0,chain=Promise.resolve();
+  list.forEach(function(x){chain=chain.then(function(){var d=normalize(x);delete d._rev;d.code=(x.code||"").toUpperCase();d.id=x.id||"";d.bunch=x.bunch||"";if(x.isReverse){d.isReverse=true;d.forwardId=x.forwardId||""}
     var ex=x.appId&&S.tasks.filter(function(t){return t.id===x.appId})[0]||S.tasks.filter(function(t){return t.doc&&t.doc.id===d.id})[0];
-    if(!/^[A-Z]{3}-\d{3}$/.test(d.id)){d.code=codes()[d.code]?d.code:"HOM";d.id=nextId(d.code)}
-    var t=ex?Object.assign({},ex):{id:uid(),source:"Codex"};t.doc=d;t.name=d.name;t.status="described";t.rulesVersion=x.rulesVersion||S.rulesVer;t.checks=checkDoc(d);t.source=ex?(ex.source||"Write"):"Codex";
+    if(!x.isReverse&&!/^[A-Z]{3}-\d{3}$/.test(d.id)){d.code=codes()[d.code]?d.code:"HOM";d.id=nextId(d.code)}
+    var t=ex?Object.assign({},ex):{id:uid(),source:"Codex"};if(x.isReverse&&x.forwardRec)t.forwardRec=x.forwardRec;t.doc=d;t.name=d.name;t.checks=checkDoc(d);t.status=failList(t.checks,false).length?"review":"described";t.rulesVersion=x.rulesVersion||S.rulesVer;
     return save("tasks",t.id,stamp(clean(t),!ex)).then(function(){n++}).catch(function(){errs++})})});
-  chain.then(function(){$("x-info").textContent="Imported "+n+" task"+(n===1?"":"s")+(errs?", "+errs+" failed":"")+". Open them in the list above; the checks ran on each one.";toast("Import done")})})});
+  chain.then(function(){$("x-info").textContent="Imported "+n+(errs?", "+errs+" failed":"")+". The checks ran on each one.";toast("Import done")})})});
 
 /* ---------- TODAY ---------- */
 function renderToday(){
   var fams=(S.ref.library&&S.ref.library.families)||[];var c={};STAGES.forEach(function(s){c[s[0]]=0});S.tasks.forEach(function(t){c[t.status]=(c[t.status]||0)+1});
-  var notR=S.sourcing.filter(function(s){return s.status!=="Verified"}).length;var w=written();var failing=w.filter(function(t){return checkSummary(t).bad}).length;
-  $("today-tiles").innerHTML=[[w.length,"New-format tasks written"],[failing,"With failing checks"],[c.confirmed,"Confirmed names waiting"],[c.idea,"Ideas waiting"],[fams.length||"–","Families in the old workbook"],[notR,"Items without a verified price"]].map(function(t){return '<div class="tile"><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div>'}).join("");
+  var notR=S.sourcing.filter(function(s){return s.status!=="Verified"}).length;var w=written();var failing=allRows().filter(function(t){return checkSummary(t).bad||t.status==="review"}).length;
+  $("today-tiles").innerHTML=[[w.length,"Tasks written (new format)",0],[failing,"With failing checks",failing>0],[c.confirmed,"Confirmed names waiting",c.confirmed>0],[c.idea,"Ideas waiting",0],[fams.length||"–","Families in the old workbook",0],[notR,"Items without a verified price",0]].map(function(t){return '<div class="tile'+(t[2]?" hot":"")+'"><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div>'}).join("");
   $("nc-pipe").textContent=S.tasks.filter(function(t){return t.status==="idea"||t.status==="confirmed"}).length||"";$("nc-src").textContent=notR||"";
   var today=kigaliDay();$("today-date").textContent=today;
   var by={};S.tasks.forEach(function(t){var d=(t.createdAt||"").slice(0,10),e=(t.updatedAt||"").slice(0,10);if(d===today&&t.addedBy){by[t.addedBy]=by[t.addedBy]||{a:0,w:0,e:0};by[t.addedBy].a++;if(t.doc)by[t.addedBy].w++}if(e===today&&t.editedBy&&t.editedBy!==t.addedBy){by[t.editedBy]=by[t.editedBy]||{a:0,w:0,e:0};by[t.editedBy].e++}});
@@ -610,7 +762,7 @@ $("do-brain").addEventListener("click",function(){var code=$("brain-code").value
 /* ---------- PIPELINE ---------- */
 function addTask(t){if(!S.db){toast("Cannot save.");return}var id=uid();var d=stamp(Object.assign({status:"idea"},t),true);S.tasks.push(Object.assign({id:id},d));renderPipeline();return save("tasks",id,d)}
 function setStatus(t,st){var x=clean(t);x.status=st;return save("tasks",t.id,stamp(x))}
-function renderPipeline(){var h="";STAGES.forEach(function(s){var L=S.tasks.filter(function(t){return t.status===s[0]}).sort(function(a,b){return (b.updatedAt||"").localeCompare(a.updatedAt||"")});
+function renderPipeline(){var h="";STAGES.forEach(function(s){var L=S.tasks.filter(function(t){return (t.status===s[0]||(s[0]==="described"&&t.status==="review"))&&!(t.doc&&t.doc.isReverse)}).sort(function(a,b){return (b.updatedAt||"").localeCompare(a.updatedAt||"")});
   h+='<div class="col"><div class="col-h"><span>'+s[1]+'</span><span class="pill">'+L.length+'</span></div>'+(L.length?"":'<div class="small muted" style="padding:6px">Nothing here.</div>');
   L.forEach(function(t){h+='<div class="tcard"><div class="nm">'+esc(t.doc?t.doc.id+" · "+t.doc.name:t.name)+'</div><div class="row">'+(t.category?'<span class="pill">'+esc(t.category)+'</span>':"")+(t.needs?'<span class="pill warn">Needs: '+esc(t.needs)+'</span>':"")+'</div><div class="acts">'+
     (s[0]==="idea"?'<button class="btn small primary" data-a="confirm" data-id="'+t.id+'">Confirm</button>':"")+(s[0]==="confirmed"?'<button class="btn small primary" data-a="write" data-id="'+t.id+'">Write</button><button class="btn small" data-a="back" data-id="'+t.id+'">Back</button>':"")+(t.doc?'<button class="btn small" data-a="open" data-id="'+t.id+'">Open</button>':"")+(s[0]==="described"?'<button class="btn small" data-a="exported" data-id="'+t.id+'">Mark exported</button>':"")+'<button class="btn small" data-a="del" data-id="'+t.id+'" aria-label="Delete">✕</button></div></div>'});h+='</div>'});
@@ -689,6 +841,9 @@ function openForm(title,fields,onOk){var f=$("dlg-form");
   var d=$("dlg");$("dlg-cancel").onclick=function(){d.close()};f.onsubmit=function(e){e.preventDefault();var v={};fields.forEach(function(x){var el=f.elements[x[0]];v[x[0]]=el?el.value.trim():""});d.close();onOk(v)};if(d.showModal)d.showModal();else d.setAttribute("open","");var first=f.querySelector("input,textarea");if(first)first.focus()}
 
 function renderAll(){fillCodeSelects();renderToday();renderWriteList();if(S.openId&&!S.editing)renderDoc();renderPipeline();renderBrief();renderNews();renderSourcing();renderResearch();renderRules();renderLibrary()}
+(function(){var saved=null;try{saved=localStorage.getItem("verlet-theme")}catch(e){}document.documentElement.setAttribute("data-theme",saved==="light"?"light":"dark");
+  $("theme-btn").onclick=function(){var nx=document.documentElement.getAttribute("data-theme")==="light"?"dark":"light";document.documentElement.setAttribute("data-theme",nx);try{localStorage.setItem("verlet-theme",nx)}catch(e){}}})();
+document.addEventListener("keydown",function(e){var tg=e.target&&e.target.tagName;if(tg==="INPUT"||tg==="TEXTAREA"||tg==="SELECT"||e.ctrlKey||e.metaKey||e.altKey)return;var k=e.key.toLowerCase();if(k==="w"){e.preventDefault();show("write");setTimeout(function(){$("b-names").focus()},30)}else if(k==="t")show("today");else if(k==="i")show("ideas");else if(k==="n")show("news")});
 window.__verlet={checkDoc:checkDoc,normalize:normalize,S:S};
 show(location.hash.slice(1)||"today");
 boot();

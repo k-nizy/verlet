@@ -1,6 +1,6 @@
 {
  "group": "Verlet In-House Rules",
- "version": "1.1",
+ "version": "1.2",
  "updatedAt": "2026-11-10",
  "zones": [
   "Supply",
@@ -101,12 +101,12 @@
   {
    "n": 16,
    "section": "Target State",
-   "text": "One line for every item that moved or stayed: where it ends (zone or inside which item) and the result the job created on it (closed, filled, stapled, buttoned). A pose is written only when the job needs one, such as a cup that holds liquid standing upright."
+   "text": "The Target State is a table with three columns: Item, How it ends, End zones. Every item from the Initial State has a row. \"How it ends\" gives the result the job created on it (closed, filled, stapled, buttoned), and a pose only when the job needs one, such as a cup holding liquid standing upright."
   },
   {
    "n": 17,
    "section": "Target State",
-   "text": "When more than one ending is correct, every correct ending is listed, joined with \"or\"."
+   "text": "When more than one ending is correct, every correct ending is listed in \"How it ends\", joined with \"or\"."
   },
   {
    "n": 18,
@@ -231,7 +231,7 @@
   {
    "n": 42,
    "section": "Reverse",
-   "text": "The reset starts from the end of the forward episode and ends in a valid start: every moved item back in one of its listed start zones, not the zone it just ended in. If the job cannot be undone with real tools, the Notes say \"No reverse\" and why."
+   "text": "The reset starts from the end of the forward episode and ends in a valid start: every moved item back in one of its listed start zones, not the zone it just ended in. If the job cannot be undone with real tools, or the forward task already ends in a valid start, no reset is written and the Notes say why."
   },
   {
    "n": 43,
@@ -322,6 +322,36 @@
    "n": 60,
    "section": "Checking",
    "text": "A task is Ready only when every check passes. After every 10 tasks the text is re-read from start to end."
+  },
+  {
+   "n": 61,
+   "section": "Target State",
+   "text": "End zones follow what each zone is for: a finished product ends in Staging (4), Operation (5) or Finished Goods (6); a tool after use ends in Tool (2) or Used Equipment (3); a part taken off or a leftover (cap, lid, peeled tape, used tissue) ends in Used Equipment (3) or Staging (4)."
+  },
+  {
+   "n": 62,
+   "section": "Target State",
+   "text": "A moved item may end in any of its listed end zones except the zone it started in. An item put into another item ends \"inside the <item>\". An item that stays ends \"where it started\"."
+  },
+  {
+   "n": 63,
+   "section": "Target State",
+   "text": "Only possible zones are listed, for start and end: zones the arms reach comfortably for that item, where it fits, and where the camera shows the result."
+  },
+  {
+   "n": 64,
+   "section": "Reverse",
+   "text": "Every reset is its own task row with its own ID (LIQ-001R): its own instruction, Initial State (the forward Target State, word for word), Steps, Target State, Free line, QC check, Pass, Fail and Variation Sheet."
+  },
+  {
+   "n": 65,
+   "section": "Variation Sheets",
+   "text": "A Variation Sheet lists at least 3 ways the start can vary, 6 real ways to do the job, 3 ways the end can vary, 3 real-world scenarios where people do this job, what QC never judges, and at least 3 common mistakes. Every way listed is real and possible with two-jaw 95 mm grippers."
+  },
+  {
+   "n": 66,
+   "section": "Checking",
+   "text": "A task is finished only when every check passes. Failing checks are fixed and checked again; a task that still fails is marked Needs review and is not exported."
   }
  ],
  "changeLog": [
@@ -333,6 +363,11 @@
   {
    "at": "2026-11-10T14:50:00Z",
    "what": "Version 1.1: merged the old rules that still fit (rules 44-60 added; 21, 27, 31, 33, 34 updated); dropped old fixed-zone, fixed-order and fixed-method rules",
+   "by": ""
+  },
+  {
+   "at": "2026-11-10T16:35:00Z",
+   "what": "Version 1.2: Target State as a table with end zones (16, 17, 61-63); resets as their own task rows (64); fuller Variation Sheets (65); finished only when every check passes (66); rule 42 covers tasks that already end in a valid start",
    "by": ""
   }
  ]
