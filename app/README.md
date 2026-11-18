@@ -1,8 +1,5 @@
-# Verlet Task Agent app (source)
+# Boutique Claude artifact
 
-The live app runs on claude.ai: https://claude.ai/artifact/N5eJi4gkdJbt5FbCcArMzx
-This folder is a copy of its source so Codex and the team can read and improve it.
-- `index.html`: the whole app (one file).
-- `ref/`: reference data it loads (old workbook families, Asset Pool items, bench facts).
-Changes are published by Claude to the live app; edit here, then ask Claude to publish.
-The app's saved data (tasks, rules, sourcing, news) lives in the app's own store, not in these files.
+The 16 release files correspond to the published artifact version 1794838266-f06c. The artifact host supplies storage, identity, downloads and model access. The release includes reference data, rule update code, and Excel, Word and PDF exporters.
+
+The approved rules are in [the repository JSON](../rules/inhouse-rules.json). The packaged versioned rule inputs belong to the historical updater. See [the Codex workroom](../codex-app/) for its separately hosted implementation.

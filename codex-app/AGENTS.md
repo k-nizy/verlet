@@ -1,0 +1,66 @@
+# Boutique maintenance
+
+## Word and PDF downloads — 13 November 2026
+- The owner's three screenshots define the Word variation format: a full start-variant list, two columns of ways to start/do/end plus real-world uses and mistakes, a six-zone matrix with an Ends column and Work row, and a four-column suggested-run table including unused items. Preserve native editable text/tables, all saved variation entries and review flags. Broad tables use landscape pages. Let long columns flow in short rows instead of pushing a whole multi-page row to a new page.
+- The selected-pack controls are labelled Download Word and Download PDF separately. Each click reads current saved task/reset/rule revisions; a prepared-file fallback is labelled explicitly. Excel remains unchanged.
+- Excel was reported working and remains on its existing download path. Word/PDF use `POST /api/download` to save generated documents in R2 and return ordinary attachment URLs, rather than browser-only Blob links. Keep the explicit Save file link as a fallback when a browser blocks automatic downloads. Filenames, document signatures and an 8 MB limit are validated; rejected POST bodies are drained to protect persistent connections.
+- Word/PDF are generated from a fresh selected task/reset and rule snapshot. The upload and every later download check source revisions; stale files require regeneration instead of silently serving outdated instructions. `verify-downloads.mjs` tests exact bytes, attachment headers and stale-version handling only on localhost.
+- `public/operator-word.mjs` creates editable Word text/tables with current saved values. `public/operator-language.mjs` simplifies wording without static HOM-002 field replacements. Word and default operator PDF exclude the run log and recording fields. Keep review status and untested choices visible. No model call is needed to export.
+
+## Selected task packs — 13 November 2026
+- The owner requested a HOM-002 pilot through the live Boutique writer before doing the 19 selected tasks. Agent requests `91af36cc-074c-4ab1-b70a-ca8804d505a7` and correction `b60efd58-1ad0-4e30-808a-18e3b8c1db1f` saved HOM-002/HOM-002R under v1.12. Keep their review status: stock, actual mechanisms, rig feasibility and opaque-container frame-evidence interpretation remain unresolved. No physical test was performed and no rule was changed.
+- `ui/task-pack.js` exports ticked/open tasks with linked resets. Excel uses the approved operator-task sheet layout; the owner chose that existing format. No native platform-import acceptance is established. The real PDF includes the quick start, task/reset cards, full saved variation lists, containment-aware Zone map/rotation and run log. Review filenames and page headers remain explicit.
+- `public/task-pack.mjs` owns selected-snapshot and containment-aware zone-plan logic used in the live view and exports. Contained parts share their container's actual start zone. `verify-task-pack.mjs` tests the saved agent pilot, all app checks, reset equality, six-zone rotation, selected-only Excel and PDF round trips. Test snapshots in `.sites-runtime` are local and ignored.
+
+## Request controls — 13 November 2026
+- `ui/request-controls.js` supplies per-request Stop & edit, edit/restart, cancellation, completed-request follow-ups and an in-app notification inbox. Global Pause queue permits the active request to finish and blocks new claims while leaving the Windows connector online.
+- Stop changes the server request state before the worker is interrupted; completion and lease guards prevent an old attempt from saving after a stop or restart. Never report a running attempt as stopped until its worker acknowledges process exit. A queued restart waits for that acknowledgement. Windows stops target only the worker's own Codex CLI process tree.
+- Instructions are saved with a comparison against their editor baseline. Restart reads current rules and task revisions. Follow-ups preserve completed history. Notifications derive from server-confirmed saved/failed/paused/cancelled states; browser-local unread markers use no OS notification permission and no external messages.
+- Verify API races with `verify-request-controls.mjs` and real Windows subprocess cancellation with `verify-worker-stop.mjs`, both localhost-only. The process fixture tests cancellation without a model call; it must not be represented as evidence of an actual full Windows reboot or a live-model cancellation test.
+
+## Connected workflows — 13 November 2026
+- Approved design is sage/off-white/red with light and dark themes. Retain all ten sections. The split-panel icon shows/hides the left sidebar and remembers the desktop preference.
+- UI workflow sources are `ui/workflows.js`, `ui/save-review.js` and `ui/saved-answer.js`, inserted with `ui/codex-ui.js` by the preparation script. Keep generated `public/boutique.html` and `public/boutique-theme.css` in sync.
+- New writing uses durable `write` jobs for confirmed names, unique server-assigned task IDs, atomic task/reset saves, current rules, image inputs and protected revisions. New documents remain in review until checked. Keep all operator and QC detail and uncapped realistic variation coverage.
+- Save conflicts use a three-way merge only for non-overlapping changes. Never combine competing arrays or silently overwrite a changed field. Preserve the editor's opening snapshot; overlapping drafts stay in Save review across reloads in the same browser session and require the user's field choice.
+- Image references are uploaded to R2, validated by the server and attached through the Codex CLI's image option. Keep per-task image references through brainstorming, writing and backup restore. A photo does not establish stock, dimensions or rig feasibility.
+- The data worker disables shell execution, local app/plugin tools, other agents, image generation and filesystem image tools through supported CLI flags. Uploaded images are initial inputs; research alone enables built-in web search. Never turn a public writing or research prompt into general local-computer access.
+- The canonical Windows supervisor is `scripts/connector-supervisor.mjs`; the existing sign-in task launches it via `D:/master task/boutique-startup/start-connector.ps1`. Reconnect uses a durable same-origin request, acknowledged by the local manager only for its exact live worker generation. It does not depend on a browser opening a Windows protocol link, and never interrupts a healthy active job. Do not add API-key billing or persist Site credentials. Codex login must report ChatGPT authentication.
+- Test mutation scripts only against localhost. Verify true AI image/research/write/rewrite paths separately from fixture-based API tests. A connector restart is not evidence of a complete Windows reboot.
+
+## Motion brainstorming update — 13 November 2026
+- Live in-house rules are v1.12 (77 rules). Rules 74–77 require real-job diversity across object × meaningful motion, comparison with selected/existing/rejected tasks, and specific 95 mm two-jaw feasibility checks. Use the 22-category T-Rex taxonomy stored in live `rules/inhouse.motionReference` as a non-exhaustive reference, not an operator motion prescription or QC quota. Dexterous-hand and tactile-sensing results do not prove our rig capability. Preserve rule 73 and all other writing/variation rules. Read the live rules before brainstorming or writing.
+
+## Writing rule update — 13 November 2026
+- Live in-house rules are now v1.11 (73 rules). Rule 73 requires the last step's visible finished outcome to match the corresponding Target State names, conditions and placement. Every Target State row must be established by the steps and true after the last action. Preserve allowed alternatives, item-role endings, free zones and the five-step limit. Apply to forward tasks and resets. Read the live rules before each writing pass; older v1.10 descriptions require review, not an automatic claim of compliance.
+
+## Access change — 12 November 2026
+- The owner explicitly requested public access without sign-in after being told that visitors can read and edit tasks and trigger Codex requests. Sites access was changed to public. Do not describe this Site as private or restore the private audience without a new instruction.
+- The owner authorized starting the local Codex connector at Windows sign-in under the existing signed-in account. The startup supervisor is in `D:/master task/boutique-startup/`; it uses no Site credential and no model API key. This requires the Windows computer to be on and signed in. A full Windows restart has not yet been verified.
+- Earlier privacy and in-memory Site-credential instructions below describe the previous configuration. The explicit public-access decision above supersedes them; retain all other data-preservation and no-paid-API requirements.
+
+This is the new private Boutique, managed directly from Codex.
+
+- Keep the Site private with its explicit custom allowlist. The owner requested access and content editing for [private account]; that external account was added and its access verified. Sites lists external accounts as Viewer, while Boutique permits the explicitly approved account to edit records. Native Site Editor requires workspace membership; do not claim that role was granted.
+- The shared API relies on Sites' private access boundary. All currently allowed visitors are authorized content editors. Do not add a read-only visitor without first implementing application roles. Never change the audience to public or workspace-wide without explicit membership checks in the API.
+- Read access configuration before publishing. This Site now has an external visitor, so it is no longer owner-only. Use the ordinary save/version/deploy operation preserving access, not the owner-private shortcut.
+- Codex coordinates, implements, verifies and publishes. Ask the owner before invoking Claude or another AI service/agent/API allowance. An app editing request does not authorize Claude usage. No model API keys belong in this app.
+- Preserve task/reset descriptions, IDs, statuses and forward links unless the requested change explicitly covers them. New task writing follows the current live rules, initially in-house v1.9 with 72 rules. The old workbook has separate rules.
+- The 27 forward descriptions and 24 resets were rewritten under live in-house v1.10 on 12 November 2026. Keep their material rig, stock and procedural review flags visible until the team resolves them. Exporting a review draft must preserve its review status.
+- Never write the owner's personal name in outputs. Use “the owner”. Git author and committer must be k-nizy only, with no co-author trailer.
+- UI source: `ui/original-boutique.html` plus `ui/codex-ui.js`. `scripts/prepare-boutique.py` generates the served `public/boutique.html` and the initial migration seed. The seed is initial data only; it must never overwrite live edits during deployment.
+- The server stores records in D1 and media in R2. Every normal record mutation compares the expected revision and saves its previous value in history. Keep these protections.
+- `MIGRATION.md` describes transfer evidence and limits. Do not claim old hidden metadata was transferred without evidence. The original Claude app stays intact.
+- Keep credentials only in memory and pass source credentials through the Sites helper's hidden stdin. Never save tokens in source, logs or chat output.
+- Follow the Sites skill to push exact source, package and deploy. Reuse the project_id in `.openai/hosting.json`; never register this Site again.
+- Run `node scripts/verify-workroom.mjs` only against the local preview. It writes temporary local QA records and media. Do not run it against production.
+
+## Codex connector — 12 November 2026
+- The owner explicitly authorized automatic Rewrite and Research through their signed-in Codex account. This is not permission to invoke Claude or another billed API.
+- Preserve the private audience. The local worker receives supported Site service access through stdin, retains it only in process memory and never sends it to the model. Reconnect after a restart; no credential persistence is authorized by this implementation.
+- Rewrite jobs save forward/reset atomically, guard task/reset/rule revisions, and retain history. Older manual requests must not be silently executed.
+- Verify live in-house v1.10 before writing: all identifiable realistic methods and endings, including uncommon possibilities, with no numerical cap; 3–6 meaningful start states with physical exceptions explained; tested zone restrictions separate from untested concerns.
+
+- Daily research is linked through Sites schedule Automation_cc402d2dfdb08191874b1c4434fbae39 at 09:00 Africa/Johannesburg. Read settings/codex-daily-guide and current state before research, and preserve exact task and lead records. Demonstration links must distinguish visible gripper work, human work and related techniques. Do not create another schedule.
+
+- The private Site MCP tools expose research context and an append-only, revision-checked daily briefing writer. Existing news lead positions must never be re-sorted: date/index keys carry user votes and decisions. Preserve current private access.

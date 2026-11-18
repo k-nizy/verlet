@@ -1,0 +1,439 @@
+{
+ "changeLog": [
+  {
+   "at": "2026-11-10T14:15:00Z",
+   "by": "",
+   "what": "Version 1.0 agreed in chat"
+  },
+  {
+   "at": "2026-11-10T14:50:00Z",
+   "by": "",
+   "what": "Version 1.1: merged the old rules that still fit (rules 44-60 added; 21, 27, 31, 33, 34 updated); dropped old fixed-zone, fixed-order and fixed-method rules"
+  },
+  {
+   "at": "2026-11-10T16:35:00Z",
+   "by": "",
+   "what": "Version 1.2: Target State as a table with end zones (16, 17, 61-63); resets as their own task rows (64); fuller Variation Sheets (65); finished only when every check passes (66); rule 42 covers tasks that already end in a valid start"
+  },
+  {
+   "at": "2026-11-11T12:30:00Z",
+   "by": "",
+   "what": "Version 1.3: open zones. Start, end and work zones are open by default and narrowed only for fit, reach, camera or fixed items (8, 61, 67); Zone map and Zone rotation in every Variation Sheet (65, 68, 69); zone runs follow the rotation (23, 24); QC never judges the zone choice (20)."
+  },
+  {
+   "at": "2026-11-11T13:40:00Z",
+   "by": "",
+   "what": "Version 1.4: a moved item may end back where it started when the real job puts it back (25, 62); operators choose zones freely, the Zone rotation is a suggestion, and every allowed zone is used by the end of each 2-hour block (23, 24, 69)."
+  },
+  {
+   "at": "2026-11-11T15:00:00Z",
+   "by": "",
+   "what": "Version 1.5: item roles and realistic endings with free zones (10, 16, 25, 61, 62); no poses unless the pose is the result (9, 16, 20); start variants like the Bio tasks (70); waste holder chosen by the job (71); QC in three looks with a standard mistake list and the third failed try (19, 22, 39); Clean, Recovered or Failed label (72) and the matching drop line (58); steps name a place only when the job needs it (11); run log checks zone and variant coverage (23, 24); reset, look-alike, Variation Sheet, Zone map and rotation updated (42, 54, 65, 68, 69)."
+  },
+  {
+   "at": "2026-11-11T16:00:00Z",
+   "by": "",
+   "what": "Version 1.6: start variants may set a pose that creates work, such as an upside-down cup (9, 16, 70); first and last frame spelled out (19); pace free within the Variation Sheet's time per episode (20, 65); any drop fails the video, mistakes are recorded with the second for counts per task (22, 58); label is Clean or Failed (72)."
+  },
+  {
+   "at": "2026-11-11T16:40:00Z",
+   "by": "",
+   "what": "Version 1.7: extra scene items allowed so scenes look real, never touched, never copies of task items (10, 19, 22); time is a realistic reference, not a limit; QC judges wasted motion instead of time (20, 22, 65)."
+  },
+  {
+   "at": "2026-11-11T17:10:00Z",
+   "by": "",
+   "what": "Version 1.8: an unused or scene item may be set aside once when it is really in the way (10, 19, 22); start variant with a scene item where the Product has to go (70)."
+  },
+  {
+   "at": "2026-11-11T18:00:00Z",
+   "by": "",
+   "what": "Version 1.9: open or closed always written for items that open (9); start variants cover the other real open or closed state (70)."
+  }
+ ],
+ "codes": {
+  "CAB": "Cables and wire",
+  "CLO": "Clothing and hangers",
+  "FIX": "Replace and exchange",
+  "HOM": "Home, desk and books",
+  "LAB": "Tubes, racks and boxes",
+  "LID": "Lids, latches and cases",
+  "LIQ": "Liquids",
+  "PAK": "Packing and wrapping",
+  "SRT": "Look-alike sorting",
+  "TOL": "Tools and fasteners"
+ },
+ "group": "Verlet In-House Rules",
+ "rules": [
+  {
+   "n": 1,
+   "section": "Purpose",
+   "text": "One task name covers one real job that can be done in many correct ways. The description fixes what must be true, never how the operator does it."
+  },
+  {
+   "n": 2,
+   "section": "Purpose",
+   "text": "These rules are for tasks created inside Verlet. A customer's tasks follow that customer's own rule set, kept as a separate group."
+  },
+  {
+   "n": 3,
+   "section": "Names and IDs",
+   "text": "Task ID: a 3-letter code, a dash and a 3-digit number, then \" · \" and the task name. Example: LIQ-001 · Transfer red water into a 50 mL tube and close it."
+  },
+  {
+   "n": 4,
+   "section": "Names and IDs",
+   "text": "Reverse ID: the same ID with R after the number. Example: LIQ-001R · Reset: Transfer red water into a 50 mL tube and close it."
+  },
+  {
+   "n": 5,
+   "section": "Names and IDs",
+   "text": "Bunch (platform category): the group name, a 2-digit number and the family name, for example \"Liquids 01 · Fill and close tubes\". The reset bunch adds R: \"Liquids 01R · Fill and close tubes\"."
+  },
+  {
+   "n": 6,
+   "section": "Names and IDs",
+   "text": "Codes: LIQ liquids, LAB tubes racks and boxes, LID lids latches and cases, TOL tools and fasteners, CAB cables and wire, SRT look-alike sorting, HOM home desk and books, CLO clothing and hangers, PAK packing and wrapping, FIX replace and exchange. A new code is added only when no code fits."
+  },
+  {
+   "n": 7,
+   "section": "Instruction",
+   "text": "One sentence in plain verbs that names the main items and the finished result. It never describes a method."
+  },
+  {
+   "n": 8,
+   "section": "Initial State",
+   "text": "The Initial State is a table with three columns: Item, How it starts, Start zones. \"How it starts\" gives only what the job needs (empty, cap off, open, holding red water, loose) or says \"any way\". Start zones are open by default and written \"Any zone (1–6)\". A zone is left out only when the item does not fit there, the arms cannot reach it, the camera cannot see the result there, or the item is fixed in place; it is then written \"Any zone except Tool (2)\" (or as a slash list) and the reason goes in Zone limits."
+  },
+  {
+   "n": 9,
+   "section": "Initial State",
+   "text": "A start pose is written only when it creates work. A start variant may set a pose for that reason (a cup upside down that must be set upright, a box lying on its side that must stand); the Target State then names the end pose, and it holds for every variant. Otherwise the operator chooses how items lie. A start state the job depends on (cap on, lid closed, an item stacked on top) is written in \"How it starts\". Every item that opens or closes (bottle, box, case, jar, tube, lid, file, stapler, bag, tin) always has its state written: open or closed, cap on or off."
+  },
+  {
+   "n": 10,
+   "section": "Initial State",
+   "text": "Every item has one role: Product, Base, Source, Hand tool, Used tool, Tool with a home, Part, Part taken off, Leftover, Waste holder, or Not used. The role sets how the item ends (rule 61). A task may list 1 or 2 Not used items on purpose (a look-alike or a neighbour from the same job), written \"not used, not touched\". Besides these, the scene may hold extra items that make it look real and not staged (a mug, a book, a phone, tools from other jobs). Scene items are not listed one by one; none is a copy of a task item unless the task lists it as a look-alike. An item the job does not use (listed or scene) is never used for the job. It may be set aside once when it is really in the way: it touches or sits on a task item, stands where the Product has to go, or blocks the only way to reach a task item. Listed or not, they never block the camera or the work, and no liquid sits next to the RIVER power strip."
+  },
+  {
+   "n": 11,
+   "section": "Steps",
+   "text": "At most 5 steps. Each step is one goal: the item, what becomes true, and the visible end, for example \"until the cap stops turning\". A step names where an item goes only when the job needs it (into the rack, onto the bolt), never a zone by habit."
+  },
+  {
+   "n": 12,
+   "section": "Steps",
+   "text": "Parts of a step are joined with commas or \"and\", never \"then\"."
+  },
+  {
+   "n": 13,
+   "section": "Steps",
+   "text": "Steps never say how to grab, which gripper to use, or at what angle to work."
+  },
+  {
+   "n": 14,
+   "section": "Steps",
+   "text": "Each item's full name is used once in a step. After that, \"it\" is allowed when it can only mean one item."
+  },
+  {
+   "n": 15,
+   "section": "Steps",
+   "text": "No step repeats what another step already says. No redundancy and no repeated words across the description."
+  },
+  {
+   "n": 16,
+   "section": "Target State",
+   "text": "The Target State is a table with three columns: Item, How it ends, End zone. Every item from the Initial State has a row. \"How it ends\" gives the condition the job created, the way a real worker leaves it when the job is done (closed, filled, stapled, back in its holder, set apart from the product). A pose is written only when it is the result of the job (folded, standing in the cup, set upright after starting upside down)."
+  },
+  {
+   "n": 17,
+   "section": "Target State",
+   "text": "When more than one ending is correct, every correct ending is listed in \"How it ends\", joined with \"or\"."
+  },
+  {
+   "n": 18,
+   "section": "Target State",
+   "text": "Everything the operator may choose freely is written in a Free line (for example \"any order\", \"spines facing any side\", \"which corner\"), so QC knows not to judge it."
+  },
+  {
+   "n": 19,
+   "section": "QC check",
+   "text": "QC checks every video in three looks. First frame, before the operator moves anything: every Initial State item is on the mat and in view; each is in its start condition or in one of the listed start variants; no part of the job is already done (the Target State is not already true). Extra scene items are allowed (rule 10). During the video: no mistake from the standard list or the task's own mistakes (rule 22). Last frame, after the operator lets go of the last item: every Target State row is true, including the quality line (for example \"shines evenly\"); each Product is in a zone other than its first-frame zone, unless it went into or onto an item or the job puts it back; every item rests still on the mat, none held, none about to fall; an item set aside rests still on the mat, intact and in view, anywhere."
+  },
+  {
+   "n": 20,
+   "section": "QC check",
+   "text": "QC never fails a video for the method, the grip, the angle, a pose the task does not write, which zones were used, the order of steps that are not marked \"before\" or \"after\", fewer than three failed tries at an action, anything in the Free line, or the time alone. The pace is free; what QC judges is wasted motion (rule 22), because these videos teach real robots how the job is done."
+  },
+  {
+   "n": 21,
+   "section": "QC check",
+   "text": "Pass describes only what the last frame shows: the Target State is seen, nothing fell, nothing spilled."
+  },
+  {
+   "n": 22,
+   "section": "QC check",
+   "text": "Mistakes are one standard list plus 1 to 3 lines for the task. Standard list: an item is dropped, anywhere; an item falls or is knocked over; liquid spills; something is forced, torn, bent or crushed; the wrong item is used; an item the job does not use (listed or part of the scene) is used for the job, moved when it was not in the way, moved more than once, or pushed off the mat; an order the job forces (\"before\", \"after\") is broken; the operator stops and restarts; the third failed try at the same action; wasted motion (needless back-and-forth, repeated small adjustments, hovering, or pauses with nothing happening that a real worker would not make). Task lines name concrete wrong results QC can see, for example \"red water on the outside of the tube\". Fail lists at least three concrete wrong end results, separated by semicolons. QC records each mistake by its name and the second it happened, so the team can see which mistakes happen most in each task."
+  },
+  {
+   "n": 23,
+   "section": "Zones and variation",
+   "text": "Operators are free to choose any allowed zone for each item's start, its end and the work, run by run. The Zone rotation in the Variation Sheet is a suggested plan, not an order. A run is 5 to 10 episodes with the same zones and the same start variant, changing how items are held, turned and placed every episode; the next run changes the zones of at least two items, the work zone, or the start variant."
+  },
+  {
+   "n": 24,
+   "section": "Zones and variation",
+   "text": "By the end of each 2-hour block, every allowed zone has been used at least once as a start zone and once as an end zone for each Product, and at least once as the work zone, and every start variant has been used at least once. The shift lead checks this from the run log; QC does not judge it per video. How the operator gets there is free."
+  },
+  {
+   "n": 25,
+   "section": "Zones and variation",
+   "text": "A Product ends in a zone different from where it started, unless it goes into or onto another item, or the real job puts it back where it came from (a tube back into the same hole, a book back on its shelf). Every other role ends as rule 61 says. Inside a container an item may face any direction and sit at any angle the container allows."
+  },
+  {
+   "n": 26,
+   "section": "Zones and variation",
+   "text": "Zone lists include only zones the arms reach comfortably for that item, judged from its size and weight and the two-jaw 95 mm gripper."
+  },
+  {
+   "n": 27,
+   "section": "Words",
+   "text": "Plain, simple English with short sentences. One name per item, taken from the Asset Pool when the item is there. Office tools keep the name printed on them (JAYO, INGCO, WISEUP, RIVER, Bosch, Ryobi, ANENG, TP-Link, Labshark)."
+  },
+  {
+   "n": 28,
+   "section": "Words",
+   "text": "No colours unless two items would otherwise be confused. Use each item as it is. Liquids are \"red water\"."
+  },
+  {
+   "n": 29,
+   "section": "Words",
+   "text": "No position words (middle, top, bottom, left, right, beside, side by side, in a row) unless the job needs them."
+  },
+  {
+   "n": 30,
+   "section": "Words",
+   "text": "Every \"until\" ends at something visible: until it stops, until the edges meet, until it is empty, until it is fully inside, a count."
+  },
+  {
+   "n": 31,
+   "section": "Words",
+   "text": "Banned words: firmly, neatly, properly, correctly, carefully, gently, slowly, roughly, all the way, around (except \"full turns around\"), about, some, small, enough, as needed, if, lift, lower, carry, push, pull, slide, let go, pinch, fingers, thumb, hand, wipe, tilt, sweep. Arms are never named."
+  },
+  {
+   "n": 32,
+   "section": "Safety and bench",
+   "text": "Red water is standard; blue water is allowed for an episode and is never a separate task. Liquids never share a task with the power strip. Plastic before glass."
+  },
+  {
+   "n": 33,
+   "section": "Safety and bench",
+   "text": "Only the big black nuts and bolts. Items inside boxes, bags or jars need light so they show on camera; bags are clear or white, never black. Drills are allowed but used simply. Fans are not used."
+  },
+  {
+   "n": 34,
+   "section": "Safety and bench",
+   "text": "A tube is filled only while it stands in its rack or box. A tube taken out of a rack or box returns to the same hole or the same numbered well. Rack holes change each episode, so steps say \"an empty hole\". Cryobox wells are named by their printed corner numbers (81-hole box: 1, 9, 73, 81; 25-hole box: 1, 5, 21, 25), well 1 top-left in the camera view."
+  },
+  {
+   "n": 35,
+   "section": "Variation Sheets",
+   "text": "Each family has a one-page Variation Sheet posted on every rig and read before the 2-hour block: the correct ways to start, to do the job and to end, the zone runs, what QC never judges, and common mistakes. A task with many more ways than its family gets its own sheet."
+  },
+  {
+   "n": 36,
+   "section": "Managing the rules",
+   "text": "Every rule has a number, a version and a date. A new or changed rule is checked against every other rule before it is saved; any clash is resolved first."
+  },
+  {
+   "n": 37,
+   "section": "Managing the rules",
+   "text": "When a rule changes, every description written under an older version is flagged for review."
+  },
+  {
+   "n": 38,
+   "section": "Reality",
+   "text": "Every task uses the tool people really use for that job. Notes name the real tool, say whether it is in stock and whether it is easy to buy. If the real tool is hard to get, an improvised tool may be used, marked Improvised with the reason."
+  },
+  {
+   "n": 39,
+   "section": "Reality",
+   "text": "QC checks that the job was really done, the way a real worker would leave it, and that no listed mistake happened. How the operator did it never matters."
+  },
+  {
+   "n": 40,
+   "section": "Order",
+   "text": "The order of steps is free, except where the job itself forces it (paper is gathered before it is stapled; a tube is filled before it is closed). Those steps say \"before\" or \"after\"."
+  },
+  {
+   "n": 41,
+   "section": "Materials",
+   "text": "A task that uses up material (paper, staples, tape, tissue, water) says in its Notes what is used up and how much per episode. Material not in stock is listed under Needs."
+  },
+  {
+   "n": 42,
+   "section": "Reverse",
+   "text": "The reset starts from the end of the forward episode and ends in a valid start: any listed start variant, every Product in a zone other than the one it just ended in. If the job cannot be undone with real tools (something cut, torn, used up), or the forward task already ends in a valid start, no reset is written and the Notes say why."
+  },
+  {
+   "n": 43,
+   "section": "Platform",
+   "text": "A job already on the Verlet platform is not written again as a forward task; it may appear only as a reverse."
+  },
+  {
+   "n": 44,
+   "section": "Bench",
+   "text": "The bench has no tape lines. Operators and QC know the six zones by name. A zone is always written with its number: Supply (1), Tool (2), Used Equipment (3), Staging (4), Operation (5), Finished Goods (6)."
+  },
+  {
+   "n": 45,
+   "section": "Steps",
+   "text": "Write the steps first. The instruction, Initial State, Target State, QC check, Pass and Fail are traced from the steps. If any two of them disagree, the task is fixed before it is saved."
+  },
+  {
+   "n": 46,
+   "section": "Steps",
+   "text": "A step or QC line never claims a result that no step made. A result in the middle of the job may be a QC line, for example the tube holds red water before it is closed."
+  },
+  {
+   "n": 47,
+   "section": "Target State",
+   "text": "Every part taken off during the job (cap, lid, wrapper, packaging) appears in the Target State with where it ends, unless a step puts it back."
+  },
+  {
+   "n": 48,
+   "section": "QC check",
+   "text": "QC lines and Pass name only what can be seen on the video at that moment, never hidden contents or past events."
+  },
+  {
+   "n": 49,
+   "section": "Liquids",
+   "text": "Liquid endpoints, in this order of choice: a natural end (the pipette is empty, the source is empty, full to the shoulder); the container's own printed scale; a tape ring on the container only when it has no scale and a partial level is the point of the task (3 to 5 mm wide, ends meeting, lower edge at the level)."
+  },
+  {
+   "n": 50,
+   "section": "Liquids",
+   "text": "Liquid amounts add up: the source amount, the number of fills and the space in the receiver agree, for the forward task and its reset. Overflow is tested before recording."
+  },
+  {
+   "n": 51,
+   "section": "Setup",
+   "text": "Every size, fit or reach fact that is not confirmed is listed under \"Rig test first\" and tested before recording. Sizes are never invented."
+  },
+  {
+   "n": 52,
+   "section": "Initial State",
+   "text": "Start conditions are plain and easy to check. A tidy-up start is allowed (items scattered, open, outside their container), but never a half state (partly stuck, half open, raised corner, half pushed in). No task starts with a deliberate mistake; repair and swap jobs are written as replace or exchange jobs."
+  },
+  {
+   "n": 53,
+   "section": "Words",
+   "text": "Counts are used only when QC can count them in the last frame: up to 10 items, or groups of 5 up to 20. Dominoes come in 10 or 20."
+  },
+  {
+   "n": 54,
+   "section": "Variety",
+   "text": "In a look-alike task, the item that fits ends where the job puts it (in the holder, on the bolt); the item that does not fit ends not touched, or set apart from the product when it was tried and refused."
+  },
+  {
+   "n": 55,
+   "section": "Words",
+   "text": "Use the everyday word for the job (\"button a shirt\", \"staple the sheets\"). The hard case is \"closed shut\". Steps use plain action verbs: the Controlled Vocabulary (grab, move, take out, put into, put in, put onto, turn, press, place, fill, squeeze, pour, open, close, wrap, fold, peel, tear, plug in, unplug, button, unbutton, zip, unzip, stack, hang, coil) plus everyday job verbs such as gather, staple, sort and hang."
+  },
+  {
+   "n": 56,
+   "section": "Purpose",
+   "text": "One task per kind of job; never two tasks that differ only in colour. Every task is a job clients worldwide would buy data for: real, manipulation-rich, simple to do, never senseless."
+  },
+  {
+   "n": 57,
+   "section": "Materials",
+   "text": "Items used in platform tasks count as in stock even when they are not in the Asset Pool."
+  },
+  {
+   "n": 58,
+   "section": "Variation Sheets",
+   "text": "Every Variation Sheet ends with the standard line: \"If something goes wrong: if anything is dropped, knocked over, broken or spilled, stop, set up a valid start again and record again. A video with a mistake that is saved anyway is marked Failed, with the second it happened.\" Tasks do not repeat it."
+  },
+  {
+   "n": 59,
+   "section": "Words",
+   "text": "Descriptions never contain reject codes, QC upload fields, camera instructions, the owner's name or a bunch number."
+  },
+  {
+   "n": 60,
+   "section": "Checking",
+   "text": "A task is Ready only when every check passes. After every 10 tasks the text is re-read from start to end."
+  },
+  {
+   "n": 61,
+   "section": "Target State",
+   "text": "End conditions follow the role, and the zone stays free. Product: finished, in any zone except its start, or inside or onto what it goes into. Base: changed by the job, not moved. Source: closed again if it closes, holding less, where it started unless the job moves it. Hand tool (clean after use): ready for the next person (closed, blade shut, tape retracted, switched off), resting on the mat, not touching the product; any zone. Used tool (dirty, wet or spent): set apart from the product and clean items; any zone, or inside the waste holder when it is thrown out. Tool with a home: back inside its home, the home closed if it closes. Part: in place on or in the product. Part taken off: back on its item when the real job ends closed; otherwise a Leftover. Leftover: inside the waste holder. Not used: where it started, not touched."
+  },
+  {
+   "n": 62,
+   "section": "Target State",
+   "text": "An item put into another item ends \"inside the <item>\". An item that stays ends \"where it started\". A zone is written in the Target State only for a Product, a Hand tool or a Used tool; every other role is judged by its condition, not its zone."
+  },
+  {
+   "n": 63,
+   "section": "Target State",
+   "text": "Only possible zones are listed, for start and end: zones the arms reach comfortably for that item, where it fits, and where the camera shows the result."
+  },
+  {
+   "n": 64,
+   "section": "Reverse",
+   "text": "Every reset is its own task row with its own ID (LIQ-001R): its own instruction, Initial State (the forward Target State, word for word), Steps, Target State, Free line, QC check, Pass, Fail and Variation Sheet."
+  },
+  {
+   "n": 65,
+   "section": "Variation Sheets",
+   "text": "A Variation Sheet lists 3 to 6 start variants (rule 70), at least 6 real ways to do the job, at least 3 ways the end can vary (including end poses the operator may choose), 3 real-world scenarios where people do this job, what QC never judges, at least 3 common mistakes, and the time per episode: a realistic reference for how long the job takes when done well, not a limit (an estimate until the rig test times it, for example \"1 to 2 minutes\"); an episode far over it is a sign to look for wasted motion, followed by the Zone map (rule 68) and the Zone rotation (rule 69). The time is written only in the Variation Sheet, never in the task description. Every way listed is real and possible with two-jaw 95 mm grippers."
+  },
+  {
+   "n": 66,
+   "section": "Checking",
+   "text": "A task is finished only when every check passes. Failing checks are fixed and checked again; a task that still fails is marked Needs review and is not exported."
+  },
+  {
+   "n": 67,
+   "section": "Zones",
+   "text": "Every task names its work zone: the zone where the job itself is done (where the item is opened, filled, fastened or folded). It is open by default, \"Any zone (1–6)\"; Operation (5) is one choice, not the rule. When the job happens on an item that stays (a rack, a machine), the work zone is wherever that item stands. Steps never fix a zone for an item; when the zone matters they say \"in a zone other than its start zone\" or \"in the work zone\"."
+  },
+  {
+   "n": 68,
+   "section": "Zones",
+   "text": "The Variation Sheet carries a Zone map: one row per item plus a work-zone row, one column per zone (1 to 6). Product cells are marked Start, End, Start · End or a dash; Base and Source cells Stands; other roles Start, with their end condition in the last column. A dash needs its reason in Zone limits. The app draws the map."
+  },
+  {
+   "n": 69,
+   "section": "Zones",
+   "text": "The Variation Sheet carries a Zone rotation: a suggested plan of up to 6 runs that together use every allowed zone as a start and as an end for each Product, and as the work zone. Operators may follow it in any order or choose other allowed zones, as long as rule 24 is met. The app draws it."
+  },
+  {
+   "n": 70,
+   "section": "Variation Sheets",
+   "text": "Start variants (as in the Bio tasks, the important things change, not the zone alone): the Variation Sheet lists 3 to 6 real start states that change what the operator must do, such as cap on or off, lid open or closed, an item upside down, an item stacked on top that must come off first, a different count, a look-alike or Not used item added, or a scene item standing where the Product has to go, so it is set aside first. For every item that opens or closes, the start variants include the other real state whenever it is realistic, so the item must be opened before use or closed before use; the team keeps the variants that suit the job best. Each run uses one start variant and writes it in the run log. Every listed variant is a valid start for QC. A variant never changes the Target State, so the Target State is written to hold for every variant (for example \"all beads inside the dish\"). A variant may set a pose when the pose creates work (rule 9). A variant is never a half state or a deliberate mistake (rule 52)."
+  },
+  {
+   "n": 71,
+   "section": "Materials",
+   "text": "A task that makes waste names its waste holder, chosen by what is real for that job: the tool's own catcher (a pencil sharpener's box, a hole punch's chip tray), the packaging the item came from, a tissue or paper plate, or a small bin or tray when nothing else is real. The waste holder is an item in the Initial State with the role Waste holder and stands in any zone. Waste never ends loose on the mat. A task that makes no waste writes \"Waste holder: none\"."
+  },
+  {
+   "n": 72,
+   "section": "QC check",
+   "text": "QC labels every video Clean or Failed. Clean: the first frame is a valid start, no mistake happened during the video, and the last frame shows every Target State row true. Failed: anything else; QC writes the mistake and the second it happened. Failed videos are not delivered; they are kept with their notes for the mistake counts in rule 22."
+  }
+ ],
+ "updatedAt": "2026-11-11",
+ "version": "1.9",
+ "zones": [
+  "Supply",
+  "Tool",
+  "Used Equipment",
+  "Staging",
+  "Operation",
+  "Finished Goods"
+ ]
+}

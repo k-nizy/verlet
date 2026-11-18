@@ -1,5 +1,7 @@
 # Verlet Agent
 
+[Claude artifact app](app/) · [Codex workroom app](codex-app/) · [Approved rules](rules/inhouse-rules.md)
+
 A research and planning helper for the Verlet Robotics teleop task library.
 It is used from two places with the same files: Claude and Codex.
 

@@ -1,5 +1,7 @@
 # How we work
 
+- Codex does the work from the current chat. Ask the owner before sending work to Claude, invoking Boutique's Claude-powered actions, or spending another AI service's quota. Explain why it is needed and the expected usage. Never infer this approval from a general request to edit the app.
+
 - Go step by step. Tell the plan first; the owner confirms what to do and not to do.
 - Never create a document or file without the owner knowing: explain what it is, why, and how it helps later. Wait for a yes.
 - Keep every document simple.

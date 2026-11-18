@@ -1,6 +1,10 @@
 # How Codex works with the Verlet Task Agent app
 
-The app lives on claude.ai (Verlet Task Agent). Codex cannot open it, so the two share work through JSON files in this folder.
+Current app: https://boutique-workroom.verletrobotics.chatgpt.site. Codex can edit its source at `D:/master task/sites/boutique-workroom` and publish directly through Sites. Read that source's AGENTS.md and README.md for current API access, backups, revisions and publication. No Claude allowance is used. The old Claude app remains intact.
+
+The current bridge is `boutique-agent-v3`. Target rows are objects, resets are separate entries, and existing appId, forwardId and forwardRec must be preserved. The v2 example below is historical and must not replace that shape. A normal task import runs checks and can change review status.
+
+Boutique's Rewrite and Research buttons now create automatic jobs for the local Codex connector. Results save in the app with revision/history protection. The computer and connector must stay online; after a restart Codex reconnects supported Site access through stdin, retaining credentials in memory only. Earlier manual requests are preserved separately. JSON exchange remains available. See the current Site README; historical v2 instructions below are not current writing rules.
 
 ## From the app to Codex
 1. In the app, open **Write** and press **For Codex (JSON)**.
