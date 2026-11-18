@@ -1,4 +1,4 @@
-import {zoneRows,zonePlan,ZONES,STANDARD_MISTAKES} from './task-pack.mjs';
+import {zoneRows,zonePlan,ZONES,STANDARD_MISTAKES,qcBlocks} from './task-pack.mjs';
 import {simpleOperatorText as easy} from './operator-language.mjs';
 
 // Native editable Word tables and text from this export's saved snapshot.
@@ -35,19 +35,19 @@ export async function buildOperatorWord(D,snapshot){
  ]);
  for(const record of records){
   const d=record.data.doc,v=d.variation||{},card=[p(d.id+' '+d.name,{heading:HeadingLevel.HEADING_1}),p(d.instruction,{run:{bold:true}}),p('Time per episode: '+(v.time||'Not timed on the rig.'))];
-  card.push(heading('Initial state'),table(['Item and role','How it starts','Start location'],[1900,5100,3466],list(d.initial).map(r=>[r.item+' / '+r.role,r.how,location(r)])),heading('Steps'),...list(d.steps).map((s,i)=>p((i+1)+'. '+s)),heading('Target state'),table(['Item','How it ends','End location'],[1900,5100,3466],list(d.target).map(r=>[r.item,r.how,r.place||'Any allowed zone except its start zone'])),heading('Free choices'),p(d.free),heading('Task mistakes to avoid'),...list(d.qc).map(bullet));
+  card.push(heading('Initial state'),table(['Item and role','How it starts','Start location'],[1900,5100,3466],list(d.initial).map(r=>[r.item+' / '+r.role,r.how,location(r)])),heading('Steps'),...list(d.steps).map((s,i)=>p((i+1)+'. '+s)),heading('Target state'),table(['Item','How it ends','End location'],[1900,5100,3466],list(d.target).map(r=>[r.item,r.how,r.place||'Where the job finishes'])),heading('Free choices'),p(d.free),...qcBlocks(d).flatMap(([label,lines])=>[heading(label),...lines.map(bullet)]));
   if(d.usesUp)card.push(p('Uses up: '+d.usesUp));if(d.wasteHolder)card.push(p('Waste holder: '+d.wasteHolder));section(card);
   const left=[heading('Ways to start'),...list(v.start).map(bullet),heading('Ways to do the job'),...list(v.doing).map(bullet)];
   const right=[heading('Ways to end'),...list(v.end).map(bullet),heading('Where this happens in real life'),...list(v.scenarios).map(bullet),heading('Common mistakes'),...list(v.mistakes).map(bullet)];
   const time=v.time||'Not timed on the rig.';
   const wide=[p('VARIATION SHEET · '+d.id+' · '+d.name.toUpperCase(),{heading:HeadingLevel.HEADING_1}),p('Time per episode: '+time+(/time alone/i.test(time)?'':' Time alone does not fail an episode.')),heading('Start variants one per run'),...list(v.startVariants).map(bullet),columns(left,right),heading('Choices that remain free'),p(v.qcNever)];
   const rows=zoneRows(d);
-  wide.push(heading('Zone map '+d.id,HeadingLevel.HEADING_1),p('Start and End show allowed item zones. Contained items stay with their container at the start. Ends describes the required final placement.',{keepNext:true}),
-   table(['Item',...ZONES.map((z,i)=>(i+1)+' '+z),'Ends'],[2100,1500,1500,1800,1550,1600,1800,3548],[...rows.map(r=>[r.item+(r.role==='not used'?' (not used)':''),...r.cells,r.end]),['Work zone',...ZONES.map(z=>list(d.workZones).includes(z)?'Work':'—'),'']],{redColumns:[1,2,3,4,5,6],workRow:true}),
+  wide.push(heading('Zone map '+d.id,HeadingLevel.HEADING_1),p('The map shows allowed starts and work zones. Contained items start with their container.',{keepNext:true}),
+   table(['Item',...ZONES.map((z,i)=>(i+1)+' '+z)],[2100,1500,1500,1800,1550,1600,1800],[...rows.map(r=>[r.item+(r.role==='not used'?' (not used)':''),...r.cells]),['Work zone',...ZONES.map(z=>list(d.workZones).includes(z)?'Work':'—')]],{redColumns:[1,2,3,4,5,6],workRow:true}),
    heading('Zone limits and tests'),p(d.zoneNotes||'No saved zone-test notes. Ask the team to check reach and clearance on the actual rig.')
   );
-  wide.push(heading('Suggested runs '+d.id,HeadingLevel.HEADING_1),p('Optional plan: choose any run order and other allowed combinations. Each run is 5–10 episodes with one start variant. Change the handling between episodes. Across a two-hour block, cover the allowed product start and end zones, work zones and meaningful start variants. Check reach and clearance on the rig.',{keepNext:true}),
-   table(['Run','Work zone','Start variant','Item start and end placements'],[500,1700,5400,7798],zonePlan(d).map(r=>[String(r.n),zone(r.work),r.variant,r.items.map(i=>i.item+': '+(i.container?'starts inside '+i.container+' in '+zone(i.start):'starts in '+zone(i.start))+(i.endZone?', ends in '+zone(i.endZone):i.endPlace?', ends '+i.endPlace:i.noPlan?', plan needs review':'')).join('\n')])),
+  wide.push(heading('Suggested runs '+d.id,HeadingLevel.HEADING_1),p('Optional plan: choose any run order and other allowed combinations. Each run is 5–10 episodes with one start variant. Change the handling between episodes. Across a two-hour block, cover the allowed product start zones, work zones and meaningful start variants. Check reach and clearance on the rig.',{keepNext:true}),
+   table(['Run','Work zone','Start variant','Item starts'],[500,1700,5400,7798],zonePlan(d).map(r=>[String(r.n),zone(r.work),r.variant,r.items.map(i=>i.item+': '+(i.container?'starts inside '+i.container+' in '+zone(i.start):'starts in '+zone(i.start))+(i.endZone?', ends in '+zone(i.endZone):i.endPlace?', ends '+i.endPlace:i.noPlan?', plan needs review':'')).join('\n')])),
   );section(wide,true);
  }
  const doc=new Document({creator:'Boutique',title:'Operator task guide',description:'Editable task cards, variation sheets, zone maps and suggested runs from current saved tasks',styles:{default:{document:{run:{font:'Calibri',size:22,color:'182E2A'},paragraph:{spacing:{line:245,after:70}}}},paragraphStyles:[{id:'Title',name:'Title',basedOn:'Normal',next:'Normal',run:{font:'Calibri',size:40,bold:true,color:'000000'},paragraph:{spacing:{after:200}}},{id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',run:{size:28,bold:true,color:'182E2A'},paragraph:{spacing:{before:100,after:130},keepNext:true}},{id:'Heading2',name:'Heading 2',basedOn:'Normal',next:'Normal',run:{size:22,bold:true,color:'182E2A'},paragraph:{spacing:{before:100,after:65},keepNext:true}}]},sections});

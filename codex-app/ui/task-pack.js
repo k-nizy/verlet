@@ -2,7 +2,7 @@
 var packModule=null,packLoading=import('/task-pack.mjs').then(function(m){packModule=m;return m}),packPdfLoading=null,packUrls=[];
 var previousRotation=rotation;
 var packWordLoading=null;
-zoneMap=function(d){if(!packModule)return [];var rows=packModule.zoneRows(d).map(function(r){return {item:r.item+roleTag(r.role),cells:r.cells,note:(r.container?'Starts inside '+r.container+'; ':'')+r.end}});rows.push({item:'Work zone',cells:ZN.map(function(z){return (d.workZones||[]).includes(z)?'Work':'-'}),note:'',work:true});return rows};
+zoneMap=function(d){if(!packModule)return [];var rows=packModule.zoneRows(d).map(function(r){return {item:r.item+roleTag(r.role),cells:r.cells,note:r.container?'Starts inside '+r.container:''}});rows.push({item:'Work zone',cells:ZN.map(function(z){return (d.workZones||[]).includes(z)?'Work':'-'}),note:'',work:true});return rows};
 rotation=function(d){if(!packModule)return [];return packModule.zonePlan(d).map(function(r){return {n:r.n,work:zf(r.work),variant:r.variant,parts:r.items.map(function(i){return i.item+': '+(i.container?'inside '+i.container+'; shares its start zone '+zf(i.start):'starts in '+zf(i.start))+(i.endZone?', ends in '+zf(i.endZone):i.endPlace?', ends '+i.endPlace:i.noPlan?', no complete rotation is feasible; review Zone limits':'')})}})};
 packLoading.then(function(){if(S.openId&&!S.editing)renderDoc()}).catch(function(e){toast('Zone plan could not load: '+e.message)});
 function packSelectedIds(){var ids=Object.keys(S.ticks||{}).filter(function(id){return S.ticks[id]});if(!ids.length&&S.openId){var t=S.tasks.find(function(t){return t.id===S.openId});if(t)ids=[t.forwardRec||t.id]}return ids}

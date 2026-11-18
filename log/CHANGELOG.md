@@ -34,3 +34,5 @@
 - 2026-11-18 — v1.13 self-clash fixes before adoption: rule 19c now says "once the operator has released the last item" ("let go" is banned by rule 31); rule 22a now says "movement that does no work on the job" (arms are never named, rule 31). No other change.
 
 - 2026-11-18 — Added the verified 16-file Claude artifact release and Codex workroom source. The public source uses a rules-only seed. Private saved records stay in their original stores.
+
+- 2026-11-18 — Updated Codex task cards, QC, start-zone planning and downloads for v1.13. Prepared a reusable, backup-verified JSON rule importer for the Claude artifact. These source changes need a separate deployment.

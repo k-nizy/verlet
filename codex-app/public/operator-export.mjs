@@ -1,11 +1,11 @@
 // The saved operator / QC template follows the earlier operator-task sheet.
-import {ZONES,zonePlan,STANDARD_MISTAKES} from './task-pack.mjs';
+import {ZONES,zonePlan,qcBlocks} from './task-pack.mjs';
 const ink='FF173842', shade='FFEAF2F1', editable='FFFFF2CC';
 const arr=x=>Array.isArray(x)?x.map(String):String(x||'').split('\n').filter(Boolean);
 const text=x=>x==null?'':Array.isArray(x)?x.map(text).join('\n'):typeof x==='object'?JSON.stringify(x):String(x);
 const zname=z=>ZONES.includes(z)?z+' ('+(ZONES.indexOf(z)+1)+')':'Review actual setup';
 const place=x=>[x?.place,arr(x?.zones).length?'Allowed zones: '+arr(x.zones).map(zname).join(', '):''].filter(Boolean).join('; ')||'See item condition';
-const endPlace=(d,r)=>place(r)+(!r.place&&(d.initial||[]).find(i=>i.item===r.item)?.role==='product'?'; not its start zone':'');
+const endPlace=(d,r)=>r.place||'Where the job finishes';
 const numbered=x=>arr(x).map((v,i)=>(i+1)+'. '+v).join('\n');
 function chunks(value,width,maxLines=22){
   const paragraphs=text(value).split('\n'),out=[];let lines=[];
@@ -33,21 +33,20 @@ export function buildWorkbook(ExcelJS,snapshot){
     let initial=(d.initial||[]).map(x=>'[ ] '+x.item+' ('+(x.role||'item')+'): '+x.how+' '+place(x)).join('\n');
     let target=(d.target||[]).map(x=>x.item+': '+x.how+' End: '+endPlace(d,x)).join('\n');
     let notes=[t.status==='review'?'REVIEW BEFORE RECORDING: resolve the notes below and test on the rig.':'',d.rigTest?'Rig test first: '+d.rigTest:'',...review(t).map(n=>'Review: '+n),d.zoneNotes?'Zone notes: '+d.zoneNotes:'',d.needs?'Needs: '+d.needs:''].filter(Boolean).join('\n');
-    const qcLabel=t.rulesVersion==='1.10'?'Task-specific failure checks (fail if observed):':'Task-specific QC observations (compare with Pass and Fail):';
-    const qc=['First frame: check each listed item and the chosen start state before movement.','During: no standard mistake.\n'+numbered(STANDARD_MISTAKES),qcLabel+'\n'+numbered(d.qc),'Last frame: check every Target State row after release. Clean means a valid start, no mistake and every target true. Failed: record the mistake and its second.'].join('\n');
-    return [d.id,d.name,d.instruction+'\n\n'+numbered(d.steps),qc,d.pass,d.fail,initial,notes,target,(d.initial||[]).map(x=>x.item+': '+x.how).join('\n'),d.allowedTypes||'See start and target conditions.',[d.free,v.qcNever?'QC does not judge: '+v.qcNever:'','Additional start states, methods and endings: see Variations.'].filter(Boolean).join('\n'),pair]});
-  table('Operator Tasks',`${forwards.length} tasks · ${reverses.length} reverses · Both teams use the same row. Review and test flagged items before recording.`,['Task ID','Task name','Instruction and steps','QC Check, Step by Step','Pass','Fail','Before-Record Checklist','Setup Notes','Target State and End Zones','Items and Quantities','Allowed Colors and Types','Keep Rules','Paired Task ID'],[16,38,74,65,55,55,68,76,70,65,48,65,18],rows);
+    const qc=qcBlocks(d).map(([heading,lines])=>heading+'\n'+lines.join('\n')).join('\n\n');
+    return [d.id,d.name,d.instruction+'\nReference time: '+(v.time||'To confirm on the rig.')+'\n\n'+numbered(d.steps),qc,d.pass,d.fail,initial,notes,target,(d.initial||[]).map(x=>x.item+': '+x.how).join('\n'),d.allowedTypes||'See start and target conditions.',[d.free,v.qcNever?'QC does not judge: '+v.qcNever:'','Additional start states, methods and endings: see Variations.'].filter(Boolean).join('\n'),pair]});
+  table('Operator Tasks',`${forwards.length} tasks · ${reverses.length} reverses · Both teams use the same row. Review and test flagged items before recording.`,['Task ID','Task name','Instruction and steps','QC checks','Pass','Fail','Before-Record Checklist','Setup Notes','Target State and End Zones','Items and Quantities','Allowed Colors and Types','Keep Rules','Paired Task ID'],[16,38,74,65,55,55,68,76,70,65,48,65,18],rows);
   let variations=[],zones=[],evaluation=[];
   for(const t of tasks){const d=t.doc,v=d.variation||{};for(const [key,name] of [['startVariants','Start state'],['start','Setup choices'],['doing','Method'],['end','Ending arrangement'],['scenarios','Real-life scenario'],['mistakes','Common mistake']])arr(v[key]).forEach((x,i)=>variations.push([d.id,d.name,name,String(i+1),x]));if(v.qcNever)variations.push([d.id,d.name,'QC does not judge','',v.qcNever]);
     variations.push([d.id,d.name,'Estimated time','',v.time||'Not timed']);
     for(const run of zonePlan(d))variations.push([d.id,d.name,'Suggested zone run',String(run.n),'Work: '+zname(run.work)+'; State: '+run.variant+'\n'+run.items.map(i=>i.item+': '+(i.container?'inside '+i.container+'; start with container in '+zname(i.start):'start '+zname(i.start))+(i.endZone?'; end '+zname(i.endZone):i.endPlace?'; end '+i.endPlace:'')).join('\n')]);
-    for(const i of d.initial||[]){const e=(d.target||[]).find(x=>x.item===i.item);zones.push([d.id,d.name,i.item,i.role,i.how,place(i),e?.how||'',e?endPlace(d,e):'',arr(d.workZones).map(zname).join(', '),d.zoneNotes||''])}
+    for(const i of d.initial||[]){const e=(d.target||[]).find(x=>x.item===i.item);zones.push([d.id,d.name,i.item,i.role,i.how,place(i),arr(d.workZones).map(zname).join(', '),d.zoneNotes||''])}
     arr(v.startVariants).forEach((x,i)=>evaluation.push([d.id,d.name,String(i+1),x,'','','','','','','','','','','','','',t.status==='review'?'Review before recording':'See rig-test notes']));
   }
   table('Variations','All saved realistic options, including uncommon ones. The lists remain expandable.',['Task ID','Task name','Type','Option','Details'],[16,38,25,12,110],variations);
-  table('Zone coverage','Allowed zones and per-item placements. Untested restrictions remain review items.',['Task ID','Task name','Item','Role','Start condition','Start zones','End condition','End zones or placement','Work zones','Restrictions and rig tests'],[16,38,28,20,68,55,68,55,45,70],zones);
-  const ev=table('Evaluation log','Copy a row for each episode; operators and QC record the actual state, method, ending and zones.',['Task ID','Task name','Start option','Planned start state','Run ID','Video ID','Operator','Date','Actual start state','Start zones','Actual method','Ending arrangement','End zones','Work zone','Clean / Failed','Mistake second','QC notes','Readiness'],[16,38,12,75,18,20,20,18,65,55,65,65,55,22,18,18,65,25],evaluation);
-  for(let r=5;r<=ev.rowCount;r++){for(let c=5;c<=17;c++)ev.getCell(r,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:editable}};ev.getCell(r,15).dataValidation={type:'list',allowBlank:true,formulae:['"Clean,Failed"']};}
+  table('Zone coverage','Allowed zones and per-item placements. Untested restrictions remain review items.',['Task ID','Task name','Item','Role','Start condition','Start zones','Work zones','Restrictions and rig tests'],[16,38,28,20,68,55,68,55,45,70],zones);
+  const ev=table('Evaluation log','Copy a row for each episode; operators and QC record the actual state, method, ending and zones.',['Task ID','Task name','Start option','Planned start state','Run ID','Video ID','Operator','Date','Actual start state','Start zones','Actual method','Ending arrangement','Quality score','Work zone','Platform result','Mistake second','QC notes','Readiness'],[16,38,12,75,18,20,20,18,65,55,65,65,55,22,18,18,65,25],evaluation);
+  for(let r=5;r<=ev.rowCount;r++){for(let c=5;c<=17;c++)ev.getCell(r,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:editable}};}
   return {workbook:wb,counts:{tasks:forwards.length,reverses:reverses.length,sheets:wb.worksheets.length},date:new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Johannesburg'}).format(new Date(snapshot.at||Date.now())),rulesVersion:rules?.version};
 }
 let loading;

@@ -1040,7 +1040,7 @@ function renderWriteList(){
   $("w-count").textContent=written().length+" tasks + "+nR+" resets";
   $("nc-write").textContent=written().length||"";
   if(!L.length){$("w-list").innerHTML='<div class="empty">'+(written().length?"No match.":"Nothing written yet. Paste task names above.")+'</div>';return}
-  function row(t,isR){var s=checkSummary(t);var cls=(s.bad||t.status==="review")?"bad":s.warn?"warn":"ok";return '<button class="trow" data-open="'+t.id+'" aria-current="'+(t.id===S.openId)+'"'+""+' title="'+(s.bad?s.bad+" failing checks":s.warn?s.warn+" to look at":"All checks pass")+'"><span class="sdot '+cls+'"></span><span><span class="id">'+esc(t.doc.id)+(stale(t)?' · older rules':'')+'</span><br><span class="nm">'+esc(isR?t.doc.name.replace(/^Reset:\s*/,"↺ "):t.doc.name)+'</span>'+(!isR&&t.suggest&&t.suggest.to==="ideas"?'<span class="sug">Suggested for Ideas: '+esc(t.suggest.why||"")+'</span>':"")+'</span><span class="pill'+(t.status==="review"?" bad":"")+'">'+esc(t.status==="described"?"ready":t.status==="review"?"needs review":t.status)+'</span></button>'}
+  function row(t,isR){var s=checkSummary(t);var cls=(s.bad||t.status==="review")?"bad":s.warn?"warn":"ok";return '<button class="trow" data-open="'+t.id+'" aria-current="'+(t.id===S.openId)+'"'+""+' title="'+(s.bad?s.bad+" failing checks":s.warn?s.warn+" to look at":"All checks pass")+'"><span class="sdot '+cls+'"></span><span><span class="id">'+esc(t.doc.id)+(stale(t)?' · Needs review: written under an older rule version':'')+'</span><br><span class="nm">'+esc(isR?t.doc.name.replace(/^Reset:\s*/,"↺ "):t.doc.name)+'</span>'+(!isR&&t.suggest&&t.suggest.to==="ideas"?'<span class="sug">Suggested for Ideas: '+esc(t.suggest.why||"")+'</span>':"")+'</span><span class="pill'+(t.status==="review"?" bad":"")+'">'+esc(t.status==="described"?"ready":t.status==="review"?"needs review":t.status)+'</span></button>'}
   S.ticks=S.ticks||{};S.shown=L.map(function(t){return t.id});
   $("w-list").innerHTML=L.map(function(t){var r=revOf(t);return '<div class="trow-wrap"><input type="checkbox" class="w-tick" data-tick="'+t.id+'" aria-label="Tick '+esc(t.doc.id)+'"'+(S.ticks[t.id]?" checked":"")+'>'+row(t,false)+'</div>'+(r?'<div class="trow-wrap rev"><span aria-hidden="true">↳</span>'+row(r,true)+'</div>':"")}).join("");
   $("w-list").querySelectorAll(".w-tick").forEach(function(c){c.onchange=function(){if(c.checked)S.ticks[c.dataset.tick]=1;else delete S.ticks[c.dataset.tick];tickUI()}});tickUI();
@@ -1690,7 +1690,45 @@ nativeReferenceUI();
 
 function nativeReviewedPack(snapshot){var copy=nativeCopy(snapshot),rules=copy.records.find(function(r){return r.collection==='rules'&&r.id==='inhouse'})?.data,previous=S.rules;try{S.rules=rules;copy.records.forEach(function(r){if(r.collection!=='tasks'||!r.data.doc)return;var parent=copy.records.find(function(x){return x.collection==='tasks'&&x.id===r.data.forwardRec});r.data.checks=checkDoc(r.data.doc,parent?.data.doc);if(r.data.rulesVersion!==rules?.version)r.data.checks.push({ok:false,level:'warn',name:'Written under earlier rules',note:'Review this description against rules v'+rules?.version});if(r.data.checks.some(function(c){return !c.ok}))r.data.status='review'})}finally{S.rules=previous}return copy}
 function nativeRuleDocument(id,matches){return new Promise(function(resolve,reject){var off,done=false,timer=setTimeout(function(){finish(Error('The native store did not confirm the saved rule document. No unverified migration will continue.'))},15000);function finish(error,value){if(done)return;done=true;clearTimeout(timer);queueMicrotask(function(){if(off)off()});if(error)reject(error);else resolve(value)}try{off=S.db.doc('rules/'+id).onSnapshot(function(d){var value=d.exists?d.data():null;if(!matches||matches(value))finish(null,value)},function(e){finish(e)})}catch(e){finish(e)}})}
-function nativeRuleUpdateUI(){var panel=document.createElement('section');panel.className='card';panel.innerHTML='<h3>Agreed rule update</h3><p class="small muted">Apply the verified 77-rule set without asking a model to retype it. Current data is checked, backed up and read back after saving. Avoid simultaneous rule edits: the native store has no verified atomic compare-and-set.</p><button class="btn" id="native-rule-review">Review rules v1.12 update</button><div id="native-rule-diff"></div><p id="native-rule-status" class="small" role="status"></p>'; $('r-head').before(panel);var proposed,baseline,mod;var review=$('native-rule-review');review.onclick=async function(){var status=$('native-rule-status');try{if(!S.isAdmin)throw Error('Only the existing workspace editor can apply this update.');mod=await import('./rule-update.js');var files=await Promise.all([fetch('./rules/base-v1.9.json'),fetch('./rules/update-v1.12.json')]);if(files.some(function(f){return !f.ok}))throw Error('The exact rule files did not load.');[baseline,proposed]=await Promise.all(files.map(function(f){return f.json()}));var changes=mod.validateUpdate(baseline,proposed),live=(await nativeSnapshot()).records.find(function(r){return r.collection==='rules'&&r.id==='inhouse'})?.data;if(mod.canonical(live)===mod.canonical(proposed)){status.textContent='The agreed rules v1.12 are already saved.';return}if(mod.canonical(live)!==mod.canonical(baseline))throw Error('Live rules changed from the verified baseline. Review them before applying.');var box=$('native-rule-diff');box.replaceChildren();var summary=document.createElement('p');summary.className='small';summary.textContent='Changes rules '+changes.changed.join(', ')+'. Adds '+changes.added.join(', ')+'. All other rules and the existing change log are retained.';box.append(summary);changes.changed.concat(changes.added).forEach(function(n){var details=document.createElement('details'),title=document.createElement('summary'),text=document.createElement('p');title.textContent='Rule '+n;text.textContent=proposed.rules.find(function(r){return r.n===n}).text;text.className='small';details.append(title,text);box.append(details)});var apply=document.createElement('button');apply.className='btn primary';apply.textContent='Apply verified rules v1.12';apply.onclick=async function(){apply.disabled=true;review.disabled=true;status.textContent='Checking current rules and saving a verified backup…';try{var result=await mod.applyUpdate({base:baseline,next:proposed,read:async function(id){return nativeRuleDocument(id)},waitFor:async function(id,matches){return nativeRuleDocument(id,matches)},write:async function(id,data){await S.db.collection('rules').doc(id).set(data)}});status.textContent='Saved and verified rules v'+result.version+' · '+result.count+' rules. Backup: '+result.backupId;S.rules=nativeCopy(proposed);S.rulesVer=proposed.version;renderAll();toast('Agreed rules saved and verified.')}catch(e){status.textContent=nativeSafeError(e);apply.disabled=false}finally{review.disabled=false}};box.append(apply);status.textContent='Review the exact changes, then apply when no other editor is changing rules.'}catch(e){status.textContent=nativeSafeError(e)}}}
+function nativeRuleUpdateUI() {
+  const panel=document.createElement('section');
+  panel.className='card';
+  panel.innerHTML='<h3>Import approved rules</h3><p>Choose the inhouse-rules.json file from GitHub. Review the changes before saving. Only one editor should apply a rule update at a time.</p><input type="file" accept=".json,application/json" aria-label="Approved rules JSON"><pre class="small"></pre><button class="btn primary" disabled>Apply reviewed rules</button><p role="status"></p>';
+  $('r-head').before(panel);
+  const file=panel.querySelector('input'), preview=panel.querySelector('pre'), button=panel.querySelector('button'), status=panel.querySelector('[role=status]');
+  let pending;
+  file.disabled=!S.isAdmin;
+  file.onchange=async()=>{
+    pending=null;button.disabled=true;preview.textContent='';status.textContent='';
+    if (!file.files.length) return;
+    file.disabled=true;
+    try {
+      if (!S.isAdmin) throw Error('Workspace editor access required.');
+      const mod=await import('./rule-update.js');
+      const base=await nativeRuleDocument('inhouse');
+      const input=JSON.parse(await file.files[0].text());
+      if (!Array.isArray(input.zones)||!input.codes||typeof input.codes!=='object'||!input.updatedAt) throw Error('The approved rules file is incomplete.');
+      const next=mod.prepareImport(base,input,new Date().toISOString());
+      const diff=mod.validateUpdate(base,next);
+      preview.textContent=['Version '+base.version+' → '+next.version,'Changed: '+diff.changed.join(', '),'Added: '+diff.added.join(', '),'Brainstorming only: '+next.brainstormingOnly.join(', '),...next.rules.filter(r=>diff.changed.includes(r.n)||diff.added.includes(r.n)).map(r=>{
+        const old=base.rules.find(x=>x.n===r.n);
+        return r.n+'. '+(old?'Before ['+old.section+'] '+old.text+'\n':'')+'After ['+r.section+'] '+r.text;
+      })].join('\n\n');
+      pending={base,next,mod};button.disabled=false;
+    } catch(e) {status.textContent=nativeSafeError(e)} finally {file.disabled=!S.isAdmin}
+  };
+  button.onclick=async()=>{
+    if(!pending||!S.isAdmin)return;
+    const {base,next,mod}=pending;
+    button.disabled=true;file.disabled=true;
+    try {
+      const result=await mod.applyUpdate({base,next,read:id=>nativeRuleDocument(id),
+        waitFor:(id,matches)=>nativeRuleDocument(id,matches),write:(id,data)=>S.db.collection('rules').doc(id).set(data)});
+      S.rules=nativeCopy(next);S.rulesVer=next.version;renderAll();
+      status.textContent='Verified '+result.count+' rules at v'+result.version+'. Backup: '+result.backupId;
+    }catch(e){status.textContent=nativeSafeError(e)}finally{pending=null;file.value='';file.disabled=!S.isAdmin}
+  };
+}
 nativeRuleUpdateUI();
 
 show(location.hash.slice(1)||"today");

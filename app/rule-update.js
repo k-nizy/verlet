@@ -1,24 +1,45 @@
 // Exact JSON transfer through the native app, without retyping rule arrays or calling a model.
 export function canonical(v){return JSON.stringify(order(v))}
 function order(v){return Array.isArray(v)?v.map(order):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,order(v[k])])):v}
-export function validateUpdate(base,next){
- if(base.version!=='1.9'||next.version!=='1.12')throw Error('This update is only for the verified v1.9 to v1.12 migration.');
- if(base.rules.length!==72||next.rules.length!==77||new Set(next.rules.map(r=>r.n)).size!==77)throw Error('Rule count or numbering is invalid.');
- const edits=base.rules.filter(r=>canonical(r)!==canonical(next.rules.find(n=>n.n===r.n))).map(r=>r.n).sort((a,b)=>a-b);
- if(canonical(edits)!==canonical([8,35,65,68,70]))throw Error('The prepared update changes unexpected existing rules.');
- for(let n=1;n<=77;n++)if(!next.rules.some(r=>r.n===n&&r.text?.trim()&&r.section?.trim()))throw Error('A rule number, section or text is missing.');
- if(canonical(next.changeLog.slice(0,base.changeLog.length))!==canonical(base.changeLog))throw Error('The previous change log must be preserved.');
- if(!next.motionReference)throw Error('The motion reference is missing.');
- return {changed:edits,added:[73,74,75,76,77]};
+function nextVersion(version) {
+  const match = /^(\d+)\.(\d+)$/.exec(version);
+  if (!match) throw Error('Unrecognized rules version.');
+  return match[1] + '.' + (Number(match[2]) + 1);
+}
+
+export function prepareImport(base, input, at) {
+  if (input.version !== nextVersion(base.version) || input.group !== base.group)
+    throw Error('Choose the next approved version for this rule set.');
+  if (!Array.isArray(input.rules) || !Array.isArray(input.brainstormingOnly))
+    throw Error('Rule rows and brainstorming-only rule numbers are required.');
+  const ordered = [...input.rules].sort((a,b)=>a.n-b.n);
+  if (ordered.length < base.rules.length || ordered.some((r,i)=>r.n!==i+1 ||
+      typeof r.text!=='string' || !r.text.trim() || typeof r.section!=='string' || !r.section.trim()))
+    throw Error('Rule numbers, sections or text are missing.');
+  if (input.brainstormingOnly.some(n=>!ordered.some(r=>r.n===n)))
+    throw Error('Unknown brainstorming rule number.');
+  if (!Array.isArray(base.changeLog) || !base.motionReference) throw Error('Live history or motion reference is missing.');
+  return {...base, version:input.version, updatedAt:input.updatedAt, rules:structuredClone(input.rules),
+    brainstormingOnly:[...input.brainstormingOnly], zones:structuredClone(input.zones), codes:structuredClone(input.codes),
+    changeLog:[...base.changeLog,{at,by:'',what:'Imported approved in-house rules v'+input.version+' ('+ordered.length+' rules).'}]};
+}
+
+export function validateUpdate(base,next) {
+  if (next.version!==nextVersion(base.version) || canonical(next.motionReference)!==canonical(base.motionReference) ||
+      next.changeLog.length!==base.changeLog.length+1 || canonical(next.changeLog.slice(0,-1))!==canonical(base.changeLog))
+    throw Error('Version, history or motion reference mismatch.');
+  const old=new Map(base.rules.map(r=>[r.n,r]));
+  return {changed:next.rules.filter(r=>old.has(r.n)&&canonical(old.get(r.n))!==canonical(r)).map(r=>r.n),
+    added:next.rules.filter(r=>!old.has(r.n)).map(r=>r.n)};
 }
 export async function applyUpdate({read,write,waitFor,base,next}){
  validateUpdate(base,next);
  const same=x=>canonical(x)===canonical(base);
- if(!same(await read('inhouse')))throw Error('The live rules differ from the verified v1.9 baseline. Nothing was replaced. Review the newer changes first.');
+ if(!same(await read('inhouse')))throw Error('The live rules differ from the previewed baseline. Nothing was replaced. Review the newer changes first.');
  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(base))))).map(v=>v.toString(16).padStart(2,'0')).join('');
- const backupId='archive-v1-9-'+hash.slice(0,16),archive=await read(backupId);
+ const backupId='archive-v'+base.version.replace('.', '-')+'-'+hash.slice(0,16),archive=await read(backupId);
  if(archive&&canonical(archive.record)!==canonical(base))throw Error('The backup record contains different data. Nothing was replaced.');
- if(!archive)await write(backupId,{record:structuredClone(base),savedAt:new Date().toISOString(),reason:'Exact rules v1.9 backup before the agreed v1.12 update'});
+ if(!archive)await write(backupId,{record:structuredClone(base),savedAt:new Date().toISOString(),reason:'Exact backup before v'+next.version});
  const backup=waitFor?await waitFor(backupId,v=>!!v&&canonical(v.record)===canonical(base)):await read(backupId);
  if(!backup||canonical(backup.record)!==canonical(base))throw Error('The backup could not be verified. Live rules were left unchanged.');
  if(!same(await read('inhouse')))throw Error('Rules changed while the backup was saved. The update was stopped.');

@@ -9,7 +9,7 @@ var DEF_CODES={LIQ:"Liquids",LAB:"Tubes, racks and boxes",LID:"Lids, latches and
 var ROLES=["product","base","source","hand tool","used tool","tool with a home","part","part taken off","leftover","waste holder","not used"];
 function roleOf(r){var x=String(r||"").toLowerCase().trim();if(x==="stays")return "base";if(x==="tool with home")return "tool with a home";return x||"moves"}
 function isProduct(r){r=roleOf(r);return r==="product"||r==="moves"}
-var BANNED=["firmly","neatly","properly","correctly","carefully","gently","slowly","roughly","all the way","around","about","some","small","enough","as needed","if","lift","lower","carry","push","pull","slide","let go","pinch","fingers","thumb","hand","wipe","tilt","sweep"];
+var BANNED=["firmly","neatly","properly","correctly","carefully","gently","slowly","roughly","all the way","around","about","some","small","enough","as needed","if","lower","slide","let go","pinch","fingers","thumb","hand","tilt"];
 var POS=["middle","top","bottom","left","right","beside","side by side","in a row"];
 var COLOURS=["blue","green","yellow","orange","purple","pink","black","white","grey","gray","brown"];
 function rx(w){return new RegExp("\\b"+w.replace(/\s+/g,"\\s+")+"\\b","i")}
@@ -27,15 +27,13 @@ function checkDoc(d){
   add(ini.length>0&&ini.every(function(r){return r.item&&r.how&&((r.zones||[]).length||r.place)}),"Initial State: every item has how it starts and where");
   add(!badZ.length,"Only the six zone names are used",badZ.length?"Unknown: "+badZ.join(", "):"");
   if(!isR){var mv=ini.filter(function(r){return isProduct(r.role)});add(mv.every(function(r){return (r.zones||[]).length>=2}),"Every moving item has at least two start zones","","warn")}
-  add(tg.length>0&&tg.every(function(r){return typeof r==="object"&&r.item&&r.how&&((r.zones||[]).length||r.place)}),"Target State table: every row has how it ends and end zones or a place");
+  add(tg.length>0&&tg.every(function(r){return typeof r==="object"&&r.item&&r.how}),"Target State table: every row has how it ends with its job-specific placement");
   var tn=tg.map(function(r){return nm(r.item)});var missing=ini.filter(function(r){return tn.indexOf(nm(r.item))<0}).map(function(r){return r.item});
   add(!missing.length,"Every Initial State item has a Target State row",missing.join(", "));
-  var stuck=[];ini.forEach(function(r){if(!isProduct(r.role))return;var t=tg.filter(function(x){return nm(x.item)===nm(r.item)})[0];if(t&&!t.place&&(t.zones||[]).length<2&&(r.zones||[]).length&&(t.zones||[]).every(function(z){return r.zones.indexOf(z)>=0}))stuck.push(r.item)});
-  add(!stuck.length,"A moved item can end outside its start zones",stuck.join(", "));
   var st=d.steps||[],qc=d.qc||[];
   add(st.length>=1&&st.length<=5,"At most 5 steps",st.length+" steps");
   add((d.workZones||[]).length>0,"Work zone named (rule 67)","","warn");
-  var narrow=ini.filter(function(r){return isProduct(r.role)&&(r.zones||[]).length<4});add(!ini.concat(tg).some(function(r){return r.zones&&r.zones.length>0&&r.zones.length<6})&&(!d.workZones||d.workZones.length===6)||String(d.zoneNotes||"").trim().length>3,"Restricted start, work and end zones have a reason (rule 8)",narrow.map(function(r){return r.item}).join(", "),"warn");
+  var narrow=ini.filter(function(r){return isProduct(r.role)&&(r.zones||[]).length<4});add(!ini.some(function(r){return r.zones&&r.zones.length>0&&r.zones.length<6})&&(!d.workZones||d.workZones.length===6)||String(d.zoneNotes||"").trim().length>3,"Restricted start and work zones have a reason (rule 8)",narrow.map(function(r){return r.item}).join(", "),"warn");
   add(qc.length>=1&&qc.length<=3,"1 to 3 mistakes special to this task (rule 22)",qc.length+" lines","warn");
   var badRole=ini.filter(function(r){var x=roleOf(r.role);return ROLES.indexOf(x)<0&&x!=="moves"});add(!badRole.length,"Every item has a known role (rule 10)",badRole.map(function(r){return r.item+": "+r.role}).join(", "),"warn");
   if(!isR){var hasLeft=ini.some(function(r){return roleOf(r.role)==="leftover"})||tg.some(function(r){return /waste holder/i.test(r.place||"")});var wh=String(d.wasteHolder||"").trim();add(!hasLeft||(wh&&!/^none/i.test(wh)),"Waste holder named when the job makes waste (rule 71)",wh||"none","warn");
