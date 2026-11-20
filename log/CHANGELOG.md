@@ -39,3 +39,4 @@
 
 - 2026-11-20 — Added drafts/platform-overview-2026-11-20.xlsx: a 20 November read of platform.verlet.co (2,098 teleop tasks, catalogue hours, QC, PrismaX Bio and YAM progress), set against the 30 Nov plan. The inventory site refused the login, so stock is not in the file.
 - 2026-11-20 — Inventory site read with the shared login (the first failure was a malformed hand-built request). Added drafts/inventory-snapshot-2026-11-20.xlsx (203 items, 2,831 units; hardware and electronics, no task props) and corrected the inventory line in the platform overview.
+- 2026-11-20 — Added drafts/new-task-names-from-photos-2026-11-20.xlsx: photo index of the 2 Nov WhatsApp export (274 photos: 134 stock, 25 rig, 11 unclear, 104 other) and 12 unconfirmed new task names (5 retail logistics, 3 industrial and assembly, 4 bio / lab) checked against the 20 Nov platform overview. Photos kept outside the repo.
