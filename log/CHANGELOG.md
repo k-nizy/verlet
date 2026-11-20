@@ -38,3 +38,4 @@
 - 2026-11-18 — Updated Codex task cards, QC, start-zone planning and downloads for v1.13. Prepared a reusable, backup-verified JSON rule importer for the Claude artifact. These source changes need a separate deployment.
 
 - 2026-11-20 — Added drafts/platform-overview-2026-11-20.xlsx: a 20 November read of platform.verlet.co (2,098 teleop tasks, catalogue hours, QC, PrismaX Bio and YAM progress), set against the 30 Nov plan. The inventory site refused the login, so stock is not in the file.
+- 2026-11-20 — Inventory site read with the shared login (the first failure was a malformed hand-built request). Added drafts/inventory-snapshot-2026-11-20.xlsx (203 items, 2,831 units; hardware and electronics, no task props) and corrected the inventory line in the platform overview.
