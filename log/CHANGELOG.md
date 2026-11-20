@@ -36,3 +36,9 @@
 - 2026-11-18 — Added the verified 16-file Claude artifact release and Codex workroom source. The public source uses a rules-only seed. Private saved records stay in their original stores.
 
 - 2026-11-18 — Updated Codex task cards, QC, start-zone planning and downloads for v1.13. Prepared a reusable, backup-verified JSON rule importer for the Claude artifact. These source changes need a separate deployment.
+
+- 2026-11-20 — Added drafts/platform-overview-2026-11-20.xlsx: a 20 November read of platform.verlet.co (2,098 teleop tasks, catalogue hours, QC, PrismaX Bio and YAM progress), set against the 30 Nov plan. The inventory site refused the login, so stock is not in the file.
+- 2026-11-20 — Inventory site read with the shared login (the first failure was a malformed hand-built request). Added drafts/inventory-snapshot-2026-11-20.xlsx (203 items, 2,831 units; hardware and electronics, no task props) and corrected the inventory line in the platform overview.
+- 2026-11-20 — Added drafts/new-task-names-from-photos-2026-11-20.xlsx: photo index of the 2 Nov WhatsApp export (274 photos: 134 stock, 25 rig, 11 unclear, 104 other) and 12 unconfirmed new task names (5 retail logistics, 3 industrial and assembly, 4 bio / lab) checked against the 20 Nov platform overview. Photos kept outside the repo.
+- 2026-11-20 — Added drafts/combined-tasks-vs-ots-2026-11-20.xlsx: every task from aaa_logistics_tasks_simple_english.xlsx (35 rows) and Verlet_Robotics_Updated_Pilot_Task_Sheet.xlsx (41 rows) plus the 12 owner-confirmed names, mapped to the OTS 30 Nov categories, with a v1.13 rule check (0 of 71 source descriptions follow) and rule-shaped descriptions that keep each job unchanged (5 left as written). Source files not edited.
+- 2026-11-20 — Rewrote this branch's unmerged commits so the author and committer are k-nizy only and removed the agent co-author line from their messages. File contents unchanged.
