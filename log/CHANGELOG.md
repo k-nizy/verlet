@@ -36,3 +36,5 @@
 - 2026-11-18 — Added the verified 16-file Claude artifact release and Codex workroom source. The public source uses a rules-only seed. Private saved records stay in their original stores.
 
 - 2026-11-18 — Updated Codex task cards, QC, start-zone planning and downloads for v1.13. Prepared a reusable, backup-verified JSON rule importer for the Claude artifact. These source changes need a separate deployment.
+
+- 2026-11-21 — Added a draft procurement request in the Verlet template format (drafts/PR_ItemsNeededInTheTasks_2026-11-21.xlsx) for all 23 items in "Itemes Needed in the Tasks". Each line carries the owner's size limits (longest side 20 cm or less for the high camera view; gripped part under the 95 mm jaw opening; not green on the green bench mat), the task codes, fit checks and search words. Quantities come from Peak qty. Prices, requester name/email, project and needed-by date are left blank, so the status box reads NOT READY until they are filled.
